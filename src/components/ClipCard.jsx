@@ -23,7 +23,7 @@ const ClipCard = ({ clip }) => {
             {playing ? (
                 <iframe
                     src={embedSrc}
-                    title={title || 'Rank and Match clip'}
+                    title={title || 'Bulfighter clip'}
                     className="w-full h-full"
                     allow="autoplay; encrypted-media; picture-in-picture"
                     allowFullScreen

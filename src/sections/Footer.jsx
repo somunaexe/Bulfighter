@@ -6,7 +6,7 @@ const Footer = () => {
             <p>|</p>
             <p>Privacy Policy</p>
         </div>
-        <p className="text-white-500">© 2025 Rank and Match. All rights reserved.</p>
+        <p className="text-white-500">© 2026 Bulfighter. All rights reserved.</p>
     </footer>
   )
 }
