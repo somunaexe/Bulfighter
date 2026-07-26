@@ -9,9 +9,7 @@
 }
 
 body {
-  /* background: #f038b271; */
-  background: linear-gradient(180deg, #ff8210, #ff8210, #9f0000);
-  /* background: #ff8210; */
+  background: linear-gradient(180deg, theme('colors.brand.orange'), theme('colors.brand.orange'), theme('colors.brand.red'));
   background-repeat: no-repeat;
   background-size: cover;
 
@@ -139,7 +137,7 @@ body {
   }
 
   .field-input {
-    @apply w-full bg-black-300 px-5 py-2 min-h-14 rounded-lg placeholder:text-white-500 text-lg text-white-800 shadow-black-200 shadow-2xl focus:outline-none;
+    @apply w-full bg-black-300 px-5 py-2 min-h-14 rounded-lg placeholder:text-white-500 text-lg text-white-800 shadow-black-200 shadow-2xl focus:outline-none focus:border-2 focus:border-gray-500 transition-[border-width] duration-100 ease-in-out;
   }
 
   .field-btn {
@@ -153,6 +151,45 @@ body {
   /*  footer */
   .social-icon {
     @apply w-12 h-12 rounded-full flex justify-center items-center bg-black-300 border border-black-200;
+  }
+
+  /* shared accent link, e.g. inline "read more" / external-link text.
+     White + underline so it stays legible over any background this site
+     uses (dark cards and the orange/red gradient body alike). */
+  .link-accent {
+    @apply font-semibold text-white underline decoration-2 underline-offset-2 decoration-brand-pink hover:text-brand-pink hover:decoration-white transition-colors;
+  }
+
+  /* lighter-weight link style for dense contexts like data tables */
+  .table-link {
+    @apply text-brand-orange hover:text-brand-pink transition-colors;
+  }
+
+  /* shared elevated surface for cards/panels across the site */
+  .surface-card {
+    @apply bg-black-300 border border-black-500 rounded-xl shadow-lg shadow-black-200/50;
+  }
+
+  /* admin data tables */
+  .table-head-cell {
+    @apply border border-black-500 bg-black-200 px-4 py-2 text-left text-white font-semibold whitespace-nowrap;
+  }
+
+  .table-cell {
+    @apply border border-black-500 px-4 py-2 text-white-600;
+  }
+
+  /* admin section tab nav */
+  .tab-link {
+    @apply px-4 py-2 rounded-md text-sm font-semibold transition-colors;
+  }
+
+  .tab-link-active {
+    @apply bg-brand-pink text-white;
+  }
+
+  .tab-link-inactive {
+    @apply text-white-600 hover:text-white hover:bg-black-300;
   }
 }
 

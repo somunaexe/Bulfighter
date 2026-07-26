@@ -20,17 +20,17 @@ export const adminLinks = [
   {
     id: 1,
     name: 'Interests',
-    href: '#interests',
+    href: 'interests',
   },
   {
     id: 2,
     name: 'Consents',
-    href: '#consents',
+    href: 'consents',
   },
   {
     id: 3,
     name: 'Topics',
-    href: '#topics',
+    href: 'topics',
   },
 ];
 

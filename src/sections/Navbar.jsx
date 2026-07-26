@@ -19,13 +19,13 @@ const Navbar = ({navLinks}) => {
         )
     }
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-black-300">
         <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center py-5 mx-auto c-space">
                 <div className="flex items-center gap-5">
-                    <a 
-                        href="/" 
-                        className="text-neutral-400 font-bold text-xl hover:text-[#f038b271] transition-colors">
+                    <a
+                        href="/"
+                        className="text-neutral-400 font-bold text-xl hover:text-brand-pink transition-colors">
                         Rank & Match
                     </a>
                     <Links />
