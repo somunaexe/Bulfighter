@@ -22,6 +22,14 @@ export default {
           600: '#AFB0B6',
           500: '#62646C',
         },
+        // Brand palette - the single source of truth for accent colors.
+        // Reference these (brand-pink/brand-orange/brand-red) instead of
+        // one-off hex codes so the whole site stays in sync.
+        brand: {
+          pink: '#f038b2',
+          orange: '#ff8210',
+          red: '#9f0000',
+        },
       },
       backgroundImage: {
         terminal: "url('/assets/terminal.png')",
