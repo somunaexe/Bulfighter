@@ -2,15 +2,15 @@ export const navLinks = [
   {
     id: 1,
     name: 'Join a video',
-    href: '#join',
+    href: '/#join',
+  },
+  {
+    id: 2,
+    name: 'Clips',
+    href: '/clips',
   },
   // {
-  //   id: 2,
-  //   name: 'Topics',
-  //   href: '/topics',
-  // },
-  // {
-  //   id: 2,
+  //   id: 3,
   //   name: 'Games',
   //   href: '#games',
   // },
@@ -61,65 +61,65 @@ export const socialLinks = [
 //   },
 ]
 
-const spotifyWrapped = [
-  'Ranking and Matching Spotify Wrapped Playlists',
-  {
-    id: '1',
-    link: 'https://www.youtube.com/embed/Gc1O1e99SzA?si=fGOPMNj9ruSdBgz1&amp;start=1322',
-    width: 320,
-    height: 315,
-    type: 'video'
-  },
-  {
-    id: '2',
-    title: 'Ranking and Matching Spotify Wrapped Playlists',
-    link: 'https://youtube.com/embed/8rIM4_ctfXg?si=yMFoftfwFPqnGq7e',
-    width: 560,
-    height: 315,
-    type: 'short'
-  },
-  {
-    id: '3',
-    title: 'Ranking and Matching Spotify Wrapped Playlists',
-    link: 'https://www.youtube.com/embed/Gc1O1e99SzA?si=fGOPMNj9ruSdBgz1&amp;start=1322',
-    width: 560,
-    height: 315,
-    type: 'short'
-  }
-]
+// const spotifyWrapped = [
+//   'Ranking and Matching Spotify Wrapped Playlists',
+//   {
+//     id: '1',
+//     link: 'https://www.youtube.com/embed/Gc1O1e99SzA?si=fGOPMNj9ruSdBgz1&amp;start=1322',
+//     width: 320,
+//     height: 315,
+//     type: 'video'
+//   },
+//   {
+//     id: '2',
+//     title: 'Ranking and Matching Spotify Wrapped Playlists',
+//     link: 'https://youtube.com/embed/8rIM4_ctfXg?si=yMFoftfwFPqnGq7e',
+//     width: 560,
+//     height: 315,
+//     type: 'short'
+//   },
+//   {
+//     id: '3',
+//     title: 'Ranking and Matching Spotify Wrapped Playlists',
+//     link: 'https://www.youtube.com/embed/Gc1O1e99SzA?si=fGOPMNj9ruSdBgz1&amp;start=1322',
+//     width: 560,
+//     height: 315,
+//     type: 'short'
+//   }
+// ]
 
-const hotTakesSpecial = [
-  '5 Hot Takes Special',
-  {
-    id: '1',
-    title: '5 Hot Takes Special',
-    link: 'https://www.youtube.com/embed/h6nGIqxcXWg?si=_uP7jTyRzlvilFPP&amp;start=110',
-    width: 560,
-    height: 315,
-    type: 'video'
-  },
-  {
-    id: '2',
-    title: '5 Hot Takes Special',
-    link: 'https://youtube.com/shorts/2PwFtySflVU?si=poZW6KcFcj1QzA_S',
-    width: 560,
-    height: 315,
-    type: 'short'
-  },
-  {
-    id: '3',
-    title: '5 Hot Takes Special',
-    link: 'https://youtube.com/shorts/1lpT4zWtHBM?si=uVwEU9C0OGE7qOob',
-    width: 560,
-    height: 315,
-    type: 'short'
-  },
-]
+// const hotTakesSpecial = [
+//   '5 Hot Takes Special',
+//   {
+//     id: '1',
+//     title: '5 Hot Takes Special',
+//     link: 'https://www.youtube.com/embed/h6nGIqxcXWg?si=_uP7jTyRzlvilFPP&amp;start=110',
+//     width: 560,
+//     height: 315,
+//     type: 'video'
+//   },
+//   {
+//     id: '2',
+//     title: '5 Hot Takes Special',
+//     link: 'https://youtube.com/shorts/2PwFtySflVU?si=poZW6KcFcj1QzA_S',
+//     width: 560,
+//     height: 315,
+//     type: 'short'
+//   },
+//   {
+//     id: '3',
+//     title: '5 Hot Takes Special',
+//     link: 'https://youtube.com/shorts/1lpT4zWtHBM?si=uVwEU9C0OGE7qOob',
+//     width: 560,
+//     height: 315,
+//     type: 'short'
+//   },
+// ]
 
-export const videoLinks = [
-  spotifyWrapped,
-  hotTakesSpecial,
-]
+// export const videoLinks = [
+//   spotifyWrapped,
+//   hotTakesSpecial,
+// ]
 
 export const calculateSizes = (isSmall, isMobile, isTablet) => {
   return {
