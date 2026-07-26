@@ -2,15 +2,15 @@ export const navLinks = [
   {
     id: 1,
     name: 'Join a video',
-    href: '#join',
+    href: '/#join',
+  },
+  {
+    id: 2,
+    name: 'Clips',
+    href: '/clips',
   },
   // {
-  //   id: 2,
-  //   name: 'Topics',
-  //   href: '/topics',
-  // },
-  // {
-  //   id: 2,
+  //   id: 3,
   //   name: 'Games',
   //   href: '#games',
   // },
