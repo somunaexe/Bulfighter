@@ -10,10 +10,8 @@ const ClipCard = ({ clip }) => {
     return (
         <div
             className={`
-                relative flex-shrink-0 h-48 sm:h-64 md:h-80
+                relative flex-shrink-0 h-48 sm:h-64 md:h-80 overflow-hidden surface-card
                 ${isShort ? 'aspect-[9/16]' : 'aspect-video'}
-                rounded-xl overflow-hidden bg-black-300 border border-black-500
-                shadow-lg shadow-black-200/50
             `}
         >
             {isShort && (
@@ -44,7 +42,7 @@ const ClipCard = ({ clip }) => {
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <span className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
-                        <span className="flex items-center justify-center w-14 h-14 rounded-full bg-black/60 group-hover:bg-[#f038b2] transition-colors">
+                        <span className="flex items-center justify-center w-14 h-14 rounded-full bg-black/60 group-hover:bg-brand-pink transition-colors">
                             <svg viewBox="0 0 24 24" className="w-6 h-6 ml-1 fill-white">
                                 <path d="M8 5v14l11-7z" />
                             </svg>

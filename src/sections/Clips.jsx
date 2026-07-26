@@ -29,14 +29,14 @@ const Clips = () => {
 
             <section className="c-space pt-32 pb-20">
                 <div className="text-center max-w-2xl mx-auto mb-14">
-                    {/* <h1 className="head-text">Clips</h1> */}
+                    <p className="text-white-600 text-lg">
                     <p className="text-white-600 mt-4 text-lg">
                         Highlights from the videos we&apos;ve filmed. Catch the full episodes on{' '}
                         <a
                             href="https://www.youtube.com/@rankandmatch"
                             target="_blank"
                             rel="noreferrer"
-                            className="font-semibold text-orange-500 hover:text-orange-400 transition-colors"
+                            className="link-accent"
                         >
                             YouTube @rankandmatch
                         </a>.
