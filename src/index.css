@@ -10,7 +10,8 @@
 
 body {
   /* background: #f038b271; */
-  background: linear-gradient(180deg, #f038b271, #f038b271, #ff8210, #9f0000);
+  background: linear-gradient(180deg, #ff8210, #ff8210, #9f0000);
+  /* background: #ff8210; */
   background-repeat: no-repeat;
   background-size: cover;
 
