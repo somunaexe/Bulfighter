@@ -6,7 +6,7 @@ const App = () => {
   return (
     <main className="max-w-7xl mx-auto">
       <div className="absolute bg-[url('/assets/cherry.gif')] w-1/2 h-1/2 bg-cover bg-no-repeat" ></div>
-      <Navbar navLinks={navLinks} admin={false}/>
+      <Navbar navLinks={navLinks}/>
       <Contact /> 
       <Footer />
     </main>
