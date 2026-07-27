@@ -5,7 +5,7 @@ const roleTextClass = {
     judges: '!text-brand-pink',
     contestants: '!text-brand-orange',
     castMembers: '!text-blue-400',
-    crew: '!text-purple-400',
+    // crew: '!text-purple-400',
 }
 
 const Consents = () => {
