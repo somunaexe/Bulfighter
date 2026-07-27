@@ -87,6 +87,8 @@ const Interests = () => {
                     <form className="mt-12 flex flex-col space-y-7 z-10 relative">
                         {consentMessage && <p className="text-green-500">{consentMessage}</p>}
                         {consentError && <p className="text-red-500">{consentError}</p>}
+                        <p className="text-white">Are you sure you want to send the consent form?</p>
+
                         <label className="space-y-3">
                             <p className="field-label">Topic ID <span className='text-red-500'>*</span></p>
                             <input type="text" name="id" value={topicId} onChange={(e) => setTopicId(e.target.value)} required
@@ -106,7 +108,6 @@ const Interests = () => {
                             </select>
                         </label>
 
-                        <p className="text-white">Are you sure you want to send the consent form?</p>
                         <button type="submit" className="btn" onClick={requestConsent} disabled={sending}>
                             {sending ? 'Sending...' : 'Yes'}
                         </button>
