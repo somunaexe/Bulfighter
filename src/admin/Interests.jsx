@@ -118,7 +118,6 @@ const Interests = () => {
                             <table className="table-auto border-collapse w-full">
                                 <thead>
                                     <tr>
-                                        <th className="table-head-cell">Send Consent form?</th>
                                         <th className="table-head-cell">S/N</th>
                                         <th className="table-head-cell">Full Name</th>
                                         <th className="table-head-cell">Time Applied</th>
@@ -127,6 +126,7 @@ const Interests = () => {
                                         <th className="table-head-cell">Phone Number</th>
                                         <th className="table-head-cell">Social(s)</th>
                                         <th className="table-head-cell">Allergies</th>
+                                        <th className="table-head-cell">Send Consent form?</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -134,18 +134,6 @@ const Interests = () => {
                                     const { interestId, timestamp, fullName, age, email, phoneNumber, social, allergies} = interest;
                                     return (
                                         <tr key={interestId || index}>
-                                            <td className="table-cell">
-                                                <div className="flex justify-center">
-                                                    <button className="btn m-0 hover:bg-black-500"
-                                                        onClick={() => {
-                                                            setCurrentInterestId(interestId)
-                                                            setModalIsOpen(true)
-                                                            setEmail(email)
-                                                        }}
-                                                    >Cast?</button>
-                                                </div>
-                                            </td>
-
                                             <td className="table-cell">{index+1}</td>
                                             <td className="table-cell">{fullName}</td>
                                             <td className="table-cell">
@@ -166,6 +154,25 @@ const Interests = () => {
                                                 }
                                             </td>
                                             <td className="table-cell">{allergies}</td>
+                                            <td className="table-cell">
+                                                <div className="flex justify-center">
+                                                    <button
+                                                        aria-label="Send consent form"
+                                                        title="Send consent form"
+                                                        className="w-9 h-9 rounded-full bg-black-500 hover:bg-brand-pink flex items-center justify-center transition-colors"
+                                                        onClick={() => {
+                                                            setCurrentInterestId(interestId)
+                                                            setModalIsOpen(true)
+                                                            setEmail(email)
+                                                        }}
+                                                    >
+                                                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-white stroke-2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <line x1="22" y1="2" x2="11" y2="13" />
+                                                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </td>
                                         </tr>
                                     )
                                 })}
