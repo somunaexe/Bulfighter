@@ -9,9 +9,12 @@
 }
 
 body {
-  background: linear-gradient(180deg, theme('colors.brand.orange'), theme('colors.brand.orange'), theme('colors.brand.red'));
+  background:
+    radial-gradient(ellipse 1200px 600px at 50% 0%, rgba(240, 119, 39, 0.5), transparent 70%),
+    linear-gradient(180deg, theme('colors.white.DEFAULT'), theme('colors.white.500'));
   background-repeat: no-repeat;
   background-size: cover;
+  background-attachment: fixed;
 
   font-family: 'General Sans', sans-serif;
 }
