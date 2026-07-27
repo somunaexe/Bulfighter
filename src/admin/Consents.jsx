@@ -3,8 +3,8 @@ import { format } from "date-fns"
 
 const Consents = () => {
     const [consents, setConsents] = useState([]);
-    const [loaded, setLoaded] = useState([])
-    const loadConsents = async (e) => {
+    const [loaded, setLoaded] = useState(false);
+    const loadConsents = async () => {
         const response = await fetch("https://9llxstbhji.execute-api.eu-north-1.amazonaws.com/dev",
             {
                 method: "GET",
@@ -63,7 +63,16 @@ const Consents = () => {
                                             <td className="table-cell">
                                                 {format(new Date(timestamp), "eeee, MMM d, yyyy, HH:mm:ss")}
                                             </td>
-                                            <td className="table-cell">{role}</td>
+                                            <td 
+                                                className={`table-cell 
+                                                    ${
+                                                        role === 'judges' ? 'text-red-500' : 
+                                                        role === 'contestants' ? 'text-blue-500' :
+                                                        role === 'castMembers' ? 'text-orange-500' : ''}
+                                                `}>
+                                                {role}
+                                            </td>
+
                                             <td className={`table-cell ${Number(age) < 18 ? '!text-red-500' : ''}`}>{age}
                                             </td>
                                             <td className="table-cell">
@@ -106,11 +115,11 @@ const Consents = () => {
                         </div>
                     )
                 }
-                {consents.length < 1 && !setLoaded &&(
+                {consents.length < 1 && !loaded &&(
                     <p className="text-white-600 text-3xl">Loading...</p>
                 )}
 
-                {consents.length < 1 && setLoaded &&(
+                {consents.length < 1 && loaded &&(
                     <p className="text-white-600 text-3xl">No consents found</p>
                 )}
             </section>
