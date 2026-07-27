@@ -10,7 +10,7 @@ const roleTextClass = {
 
 const Consents = () => {
     const [consents, setConsents] = useState([]);
-    const [loaded, setLoaded] = useState([])
+    const [loaded, setLoaded] = useState(false)
     const loadConsents = async () => {
         const response = await fetch("https://9llxstbhji.execute-api.eu-north-1.amazonaws.com/dev",
             {
