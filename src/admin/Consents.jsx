@@ -3,8 +3,8 @@ import { format } from "date-fns"
 
 const roleTextClass = {
     judges: '!text-brand-pink',
-    contestants: '!text-brand-orange',
-    castMembers: '!text-blue-400',
+    contestants: '!text-blue-400',
+    castMembers: '!text-brand-orange',
     // crew: '!text-purple-400',
 }
 
@@ -70,7 +70,9 @@ const Consents = () => {
                                             <td className="table-cell">
                                                 {format(new Date(timestamp), "eeee, MMM d, yyyy, HH:mm:ss")}
                                             </td>
-                                            <td className={`table-cell ${roleTextClass[role] || ''}`}>{role}</td>
+                                            <td className={`table-cell ${roleTextClass[role] || ''}`}>
+                                                {role === "castMembers" ? "cast" : role}
+                                            </td>
                                             <td className={`table-cell ${Number(age) < 18 ? '!text-red-500' : ''}`}>{age}
                                             </td>
                                             <td className="table-cell">
