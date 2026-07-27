@@ -11,7 +11,7 @@ const SESSION_KEY = 'ram_admin_token'
 // Deploy the paired Lambda in src/backend/adminAuth.js and put its API
 // Gateway URL here (via a .env file: VITE_ADMIN_AUTH_URL=...). The password
 // is checked server-side there - nothing secret ships in this bundle.
-const ADMIN_AUTH_URL = import.meta.env.VITE_ADMIN_AUTH_URL
+// const ADMIN_AUTH_URL = import.meta.env.VITE_ADMIN_AUTH_URL
 
 const Admin = () => {
     const [token, setToken] = useState(() => sessionStorage.getItem(SESSION_KEY))
@@ -23,14 +23,14 @@ const Admin = () => {
         e.preventDefault()
         setError('')
 
-        if (!ADMIN_AUTH_URL) {
-            setError('Admin login endpoint is not configured yet.')
-            return
-        }
+        // if (!ADMIN_AUTH_URL) {
+        //     setError('Admin login endpoint is not configured yet.')
+        //     return
+        // }
 
         setChecking(true)
         try {
-            const response = await fetch(ADMIN_AUTH_URL, {
+            const response = await fetch('https://fheqb7045j.execute-api.eu-north-1.amazonaws.com/dev/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password }),
@@ -93,7 +93,7 @@ const Admin = () => {
             </div>
 
             <Routes>
-                <Route index element={<Navigate to="interests" replace />} />
+                <Route index element={<Navigate to="/admin/interests" replace />} />
                 <Route path="interests" element={<Interests />} />
                 <Route path="consents" element={<Consents />} />
                 <Route path="topics" element={<Topics />} />
