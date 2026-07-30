@@ -39,25 +39,21 @@ export const socialLinks = [
     id: 1,
     name: 'Youtube',
     href: 'https://www.youtube.com/@rankandmatch',
-    image: '/assets/youtube.png',
   },
   {
     id: 2,
     name: 'Tiktok',
     href: 'https://www.tiktok.com/@rankandmatch',
-    image: '/assets/tiktok.png',
   },
   {
     id: 3,
     name: 'Instagram',
     href: 'https://www.instagram.com/rankandmatch',
-    image: '/assets/instagram.png',
   },
 //   {
 //     id: 4,
 //     name: 'Snapchat',
 //     href: 'https://www.snapchat.com/rankandmatch',
-//     image: '/assets/snapchat.png',
 //   },
 ]
 
