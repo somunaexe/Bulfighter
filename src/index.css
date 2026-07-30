@@ -246,12 +246,6 @@ body {
     filter: brightness(0);
   }
 
-  /* navbar social icons - fixed dark to match the navbar's own fixed-dark
-     chrome (which stays dark in both themes), not the adaptive tokens */
-  .social-icon {
-    @apply w-12 h-12 rounded-full flex justify-center items-center bg-[#1C1C21] border border-[#0E0E10];
-  }
-
   /* shared accent link, e.g. inline "read more" / external-link text.
      Adaptive text color + underline so it stays legible over any
      background this site uses, in either theme. */
