@@ -1,9 +1,16 @@
 import {useState, useEffect} from "react";
 import { format } from "date-fns"
 
+const roleTextClass = {
+    judges: '!text-brand-pink',
+    contestants: '!text-blue-400',
+    castMembers: '!text-brand-orange',
+    // crew: '!text-purple-400',
+}
+
 const Consents = () => {
     const [consents, setConsents] = useState([]);
-    const [loaded, setLoaded] = useState(false);
+    const [loaded, setLoaded] = useState(false)
     const loadConsents = async () => {
         const response = await fetch("https://9llxstbhji.execute-api.eu-north-1.amazonaws.com/dev",
             {
@@ -63,16 +70,9 @@ const Consents = () => {
                                             <td className="table-cell">
                                                 {format(new Date(timestamp), "eeee, MMM d, yyyy, HH:mm:ss")}
                                             </td>
-                                            <td 
-                                                className={`table-cell 
-                                                    ${
-                                                        role === 'judges' ? 'text-red-500' : 
-                                                        role === 'contestants' ? 'text-blue-500' :
-                                                        role === 'castMembers' ? 'text-orange-500' : ''}
-                                                `}>
-                                                {role}
+                                            <td className={`table-cell ${roleTextClass[role] || ''}`}>
+                                                {role === "castMembers" ? "cast" : role}
                                             </td>
-
                                             <td className={`table-cell ${Number(age) < 18 ? '!text-red-500' : ''}`}>{age}
                                             </td>
                                             <td className="table-cell">

@@ -1,4 +1,4 @@
-import {useRef, useState, useEffect} from "react";
+import {useState, useEffect} from "react";
 import { format } from "date-fns"
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -8,10 +8,11 @@ const Interests = () => {
     const [topicId, setTopicId] = useState("")
     const [role, setRole] = useState("judges")
     const [currentInterestId, setCurrentInterestId] = useState("")
-    const [timestamp, setTimestamp] = useState('')
     const [email, setEmail] = useState('')
     const [consentMessage, setConsentMessage] = useState('')
-    const loadInterests = async (e) => {
+    const [consentError, setConsentError] = useState('')
+    const [sending, setSending] = useState(false)
+    const loadInterests = async () => {
         const response = await fetch("https://9rbgl7kyu7.execute-api.eu-north-1.amazonaws.com/dev",
             {
                 method: "GET",
@@ -32,23 +33,31 @@ const Interests = () => {
 
     const requestConsent = async(e) => {
         e.preventDefault()
+        if (sending) return
+        setSending(true)
+        setConsentMessage('')
+        setConsentError('')
         const currentTime = new Date().toISOString()
-        console.log(`${currentInterestId},\n ${email},\n${currentTime}, \n${topicId}\n, ${role}`)
-        
-        await fetch("https://x12ex8za7c.execute-api.eu-north-1.amazonaws.com/dev/",
-            {
-                method: "POST",
-                headers: { "Content-Type" : "application/json" },
-                body: JSON.stringify({interestId: currentInterestId, email: email, topicId: topicId.trim(), role: role, currentTime: currentTime})
-            }
-        ).then(async (res) => {
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            setConsentMessage(data.message || "No response");
-        }).catch(err => console.error("Error:", err));
-        setTimestamp('')
-        setTopicId('')
-        setRole('judges')
+
+        try {
+            const res = await fetch("https://x12ex8za7c.execute-api.eu-north-1.amazonaws.com/dev/",
+                {
+                    method: "POST",
+                    headers: { "Content-Type" : "application/json" },
+                    body: JSON.stringify({interestId: currentInterestId, email: email, topicId: topicId.trim(), role: role, currentTime: currentTime})
+                }
+            )
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            const data = await res.json()
+            setConsentMessage(data.message || "Consent form sent")
+            setTopicId('')
+            setRole('judges')
+        } catch (err) {
+            console.error("Error:", err)
+            setConsentError("Something went wrong sending the consent form. Please try again.")
+        } finally {
+            setSending(false)
+        }
     }
 
     useEffect(() =>{
@@ -62,24 +71,28 @@ const Interests = () => {
                 <br/>
 
                 <ConfirmModal isOpen={modalIsOpen}>
-                    <button type="button" className="bg-red-500 font-medium text-white h-8 w-8 rounded-full flex items-center justify-center" 
+                    <button type="button" className="bg-red-500 font-medium text-white h-8 w-8 rounded-full flex items-center justify-center"
                         onClick={() => {
                             setModalIsOpen(false)
                             setCurrentInterestId('')
                             setTopicId('')
                             setRole('judges')
                             setEmail('')
-                            setTimestamp('')
+                            setConsentMessage('')
+                            setConsentError('')
                         }}
                     >
                         x
                     </button>
                     <form className="mt-12 flex flex-col space-y-7 z-10 relative">
-                        <p className="text-green-500">{consentMessage}</p>
+                        {consentMessage && <p className="text-green-500">{consentMessage}</p>}
+                        {consentError && <p className="text-red-500">{consentError}</p>}
+                        <p className="text-white">Are you sure you want to send the consent form?</p>
+
                         <label className="space-y-3">
                             <p className="field-label">Topic ID <span className='text-red-500'>*</span></p>
                             <input type="text" name="id" value={topicId} onChange={(e) => setTopicId(e.target.value)} required
-                                className="field-input" placeholder="ex., xxxx-xxxx-xxxx"/>
+                                className="field-input" placeholder="ex., 5 (see the Topics tab for the number)"/>
                         </label>
 
                         <label className="space-y-3">
@@ -95,8 +108,9 @@ const Interests = () => {
                             </select>
                         </label>
 
-                        <p className="text-white">Are you sure you want to send the consent form?</p>
-                        <button button="submit" className="btn" onClick={requestConsent}>Yes</button>
+                        <button type="submit" className="btn" onClick={requestConsent} disabled={sending}>
+                            {sending ? 'Sending...' : 'Yes'}
+                        </button>
                     </form>
                 </ConfirmModal>
 
@@ -105,7 +119,6 @@ const Interests = () => {
                             <table className="table-auto border-collapse w-full">
                                 <thead>
                                     <tr>
-                                        <th className="table-head-cell">Send Consent form?</th>
                                         <th className="table-head-cell">S/N</th>
                                         <th className="table-head-cell">Full Name</th>
                                         <th className="table-head-cell">Time Applied</th>
@@ -114,6 +127,7 @@ const Interests = () => {
                                         <th className="table-head-cell">Phone Number</th>
                                         <th className="table-head-cell">Social(s)</th>
                                         <th className="table-head-cell">Allergies</th>
+                                        <th className="table-head-cell">Send Consent form?</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -121,18 +135,6 @@ const Interests = () => {
                                     const { interestId, timestamp, fullName, age, email, phoneNumber, social, allergies} = interest;
                                     return (
                                         <tr key={interestId || index}>
-                                            <td className="table-cell">
-                                                <div className="flex justify-center">
-                                                    <button className="btn m-0 hover:bg-black-500"
-                                                        onClick={() => {
-                                                            setCurrentInterestId(interestId)
-                                                            setModalIsOpen(true)
-                                                            setEmail(email)
-                                                        }}
-                                                    >Cast?</button>
-                                                </div>
-                                            </td>
-
                                             <td className="table-cell">{index+1}</td>
                                             <td className="table-cell">{fullName}</td>
                                             <td className="table-cell">
@@ -153,6 +155,25 @@ const Interests = () => {
                                                 }
                                             </td>
                                             <td className="table-cell">{allergies}</td>
+                                            <td className="table-cell">
+                                                <div className="flex justify-center">
+                                                    <button
+                                                        aria-label="Send consent form"
+                                                        title="Send consent form"
+                                                        className="w-9 h-9 rounded-full bg-black-500 hover:bg-brand-pink flex items-center justify-center transition-colors"
+                                                        onClick={() => {
+                                                            setCurrentInterestId(interestId)
+                                                            setModalIsOpen(true)
+                                                            setEmail(email)
+                                                        }}
+                                                    >
+                                                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-white stroke-2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <line x1="22" y1="2" x2="11" y2="13" />
+                                                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </td>
                                         </tr>
                                     )
                                 })}

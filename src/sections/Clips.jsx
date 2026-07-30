@@ -25,8 +25,8 @@ const Clips = () => {
 
     return (
         <main className="max-w-7xl mx-auto">
-            <Navbar navLinks={navLinks} admin={false} />
-
+            <Navbar navLinks={navLinks} />
+            
             <section className="c-space pt-32 pb-20">
                 <div className="text-center max-w-2xl mx-auto mb-14">
                     {/* <p className="text-white-600 text-lg"> */}

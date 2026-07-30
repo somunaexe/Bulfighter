@@ -3,7 +3,7 @@ import { useState } from "react"
 import Links from "../components/Links.jsx"
 import { Link } from "react-router"
 
-const Navbar = ({navLinks}) => {
+const Navbar = ({navLinks, onLogout}) => {
     const [isOpen, setIsOpen] = useState(false)
     const toggleMenu = () => setIsOpen((prevIsOpen) => !prevIsOpen)
     
@@ -44,14 +44,30 @@ const Navbar = ({navLinks}) => {
                     alt="toggle" 
                     className="w-6 h-6"/>
                 </button>
-                <nav className="sm:flex hidden">
+                <nav className="sm:flex hidden items-center gap-6">
                     <NavItems />
+                    {onLogout && (
+                        <button
+                            onClick={onLogout}
+                            className="text-sm font-semibold text-white-600 border border-black-500 rounded-md px-3 py-1.5 hover:text-white hover:border-brand-pink transition-colors"
+                        >
+                            Log out
+                        </button>
+                    )}
                 </nav>
             </div>
         </div>
         <div className={`nav-sidebar ${isOpen ? 'max-h-screen' : 'max-h-0'}`}>
-            <nav className="p-5">
+            <nav className="p-5 flex flex-col items-center gap-4">
                 <NavItems />
+                {onLogout && (
+                    <button
+                        onClick={onLogout}
+                        className="text-sm font-semibold text-white-600 border border-black-500 rounded-md px-3 py-1.5 w-full hover:text-white hover:border-brand-pink transition-colors"
+                    >
+                        Log out
+                    </button>
+                )}
             </nav>
         </div>
     </header>

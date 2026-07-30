@@ -84,20 +84,16 @@ const Admin = () => {
 
     return (
         <main className="max-w-7xl mx-auto">
-            <Navbar navLinks={adminLinks} admin />
+            <Navbar navLinks={adminLinks} onLogout={handleLogout} />
 
-            <div className="c-space pt-28 flex justify-end">
-                <button onClick={handleLogout} className="text-white-600 hover:text-white text-sm transition-colors">
-                    Log out
-                </button>
+            <div className="pt-28">
+                <Routes>
+                    <Route index element={<Navigate to="/admin/interests" replace />} />
+                    <Route path="interests" element={<Interests />} />
+                    <Route path="consents" element={<Consents />} />
+                    <Route path="topics" element={<Topics />} />
+                </Routes>
             </div>
-
-            <Routes>
-                <Route index element={<Navigate to="/admin/interests" replace />} />
-                <Route path="interests" element={<Interests />} />
-                <Route path="consents" element={<Consents />} />
-                <Route path="topics" element={<Topics />} />
-            </Routes>
         </main>
     )
 }
