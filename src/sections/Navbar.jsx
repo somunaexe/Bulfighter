@@ -20,13 +20,13 @@ const Navbar = ({navLinks, onLogout}) => {
         )
     }
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-black-300">
+    <header className="navbar-surface fixed top-0 left-0 right-0 z-50 border-b">
         <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center py-5 mx-auto c-space">
                 <div className="flex items-center gap-5">
                     <a
                         href="/"
-                        className="text-neutral-400 font-bold text-xl hover:text-brand-pink transition-colors">
+                        className="text-white-600 font-bold text-xl hover:text-brand-pink transition-colors">
                         Rank & Match
                     </a>
                     <Links />
@@ -36,15 +36,15 @@ const Navbar = ({navLinks, onLogout}) => {
                     <button
                     onClick={toggleMenu}
                     className="
-                    text-neutral-400
-                    hover:text-white
+                    text-white-600
+                    hover:text-white-800
                     focus:outline-none
                     flex"
                     aria-label="Toggle menu">
                         <img
                         src={isOpen ? "/assets/close.svg" : "/assets/menu.svg"}
                         alt="toggle"
-                        className="w-6 h-6"/>
+                        className="w-6 h-6 nav-menu-icon"/>
                     </button>
                 </div>
                 <nav className="sm:flex hidden items-center gap-6">
@@ -53,7 +53,7 @@ const Navbar = ({navLinks, onLogout}) => {
                     {onLogout && (
                         <button
                             onClick={onLogout}
-                            className="text-sm font-semibold text-white-600 border border-black-500 rounded-md px-3 py-1.5 hover:text-white hover:border-brand-pink transition-colors"
+                            className="text-sm font-semibold text-white-600 border border-black-500 rounded-md px-3 py-1.5 hover:text-white-800 hover:border-brand-pink transition-colors"
                         >
                             Log out
                         </button>
@@ -67,7 +67,7 @@ const Navbar = ({navLinks, onLogout}) => {
                 {onLogout && (
                     <button
                         onClick={onLogout}
-                        className="text-sm font-semibold text-white-600 border border-black-500 rounded-md px-3 py-1.5 w-full hover:text-white hover:border-brand-pink transition-colors"
+                        className="text-sm font-semibold text-white-600 border border-black-500 rounded-md px-3 py-1.5 w-full hover:text-white-800 hover:border-brand-pink transition-colors"
                     >
                         Log out
                     </button>

@@ -198,7 +198,7 @@ const Contact = () => {
         
         <ConfirmModal isOpen={uploading} interestKey={0}>
             <>
-                <p className='text-white'>Uploading {uploadingItems}{'.'.repeat(dots)} Please don&apos;t leave the website</p>
+                <p className='text-white-800'>Uploading {uploadingItems}{'.'.repeat(dots)} Please don&apos;t leave the website</p>
                 <div className="w-full bg-gray-700 h-2 rounded">
                     <div
                         className="bg-green-500 h-2 rounded"
@@ -208,7 +208,7 @@ const Contact = () => {
             </>
         </ConfirmModal>
 
-        <div className="relative min-h-screen flex items-center justify-center flex-col py-10 bg-black/90 rounded-lg shadow-2xl backdrop-blur-md">
+        <div className="relative min-h-screen flex items-center justify-center flex-col py-10 bg-black-300/90 rounded-lg shadow-2xl backdrop-blur-md">
             <div className="contact-container">
                 <h3 className="head-text">Join Us</h3>
                 <p className="text-lg text-white-600 mt-3">
