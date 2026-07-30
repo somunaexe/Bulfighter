@@ -1,12 +1,13 @@
 import { useState } from "react"
 // import { navLinks } from "../constants/index.js"
 import Links from "../components/Links.jsx"
+import ThemeToggle from "../components/ThemeToggle.jsx"
 import { Link } from "react-router"
 
 const Navbar = ({navLinks, onLogout}) => {
     const [isOpen, setIsOpen] = useState(false)
     const toggleMenu = () => setIsOpen((prevIsOpen) => !prevIsOpen)
-    
+
     const NavItems = () => {
         return (
             <ul className="nav-ul">
@@ -30,22 +31,25 @@ const Navbar = ({navLinks, onLogout}) => {
                     </a>
                     <Links />
                 </div>
-                <button
-                onClick={toggleMenu}
-                className="
-                text-neutral-400
-                hover:text-white
-                focus:outline-none
-                sm:hidden
-                flex"
-                aria-label="Toggle menu">
-                    <img 
-                    src={isOpen ? "/assets/close.svg" : "/assets/menu.svg"} 
-                    alt="toggle" 
-                    className="w-6 h-6"/>
-                </button>
+                <div className="flex items-center gap-3 sm:hidden">
+                    <ThemeToggle />
+                    <button
+                    onClick={toggleMenu}
+                    className="
+                    text-neutral-400
+                    hover:text-white
+                    focus:outline-none
+                    flex"
+                    aria-label="Toggle menu">
+                        <img
+                        src={isOpen ? "/assets/close.svg" : "/assets/menu.svg"}
+                        alt="toggle"
+                        className="w-6 h-6"/>
+                    </button>
+                </div>
                 <nav className="sm:flex hidden items-center gap-6">
                     <NavItems />
+                    <ThemeToggle />
                     {onLogout && (
                         <button
                             onClick={onLogout}
