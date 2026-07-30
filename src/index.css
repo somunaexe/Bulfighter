@@ -28,6 +28,20 @@
   --page-bg-from: #FFFFFF;
   --page-bg-to: #62646C;
   --page-glow: rgba(240, 119, 39, 0.5);
+
+  /* semantic accent - warm in light mode, brand-pink in dark mode (matches
+     --page-glow's warmth so the toggle reads as "part of" each theme) */
+  --theme-accent: 255 130 16;
+
+  /* navbar chrome - a translucent surface + border distinct from
+     surface-card so it reads correctly over any section behind it */
+  --navbar-bg: 255 255 255 / 0.8;
+  --navbar-border: rgb(var(--color-black-500));
+
+  /* input/button elevation - kept deliberately subtle in light mode since
+     an opaque light shadow blurred over a page reads as a glow, not a
+     shadow */
+  --field-shadow: 0 10px 25px -10px rgb(0 0 0 / 0.12);
 }
 
 :root[data-theme="dark"] {
@@ -48,6 +62,13 @@
   --page-bg-from: #010103;
   --page-bg-to: #0E0E10;
   --page-glow: rgba(240, 56, 178, 0.16);
+
+  --theme-accent: 240 56 178;
+
+  --navbar-bg: 28 28 33 / 0.9;
+  --navbar-border: rgb(var(--color-black-300));
+
+  --field-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
 }
 
 * {
@@ -80,15 +101,25 @@ body {
   }
 
   .nav-li {
-    @apply text-neutral-400 hover:text-white font-generalsans max-sm:hover:bg-black-500 max-sm:w-full max-sm:rounded-md py-2 max-sm:px-5;
+    @apply text-white-600 hover:text-white-800 font-generalsans max-sm:hover:bg-black-500 max-sm:w-full max-sm:rounded-md py-2 max-sm:px-5;
   }
 
   .nav-li_a {
-    @apply text-lg md:text-base hover:text-white transition-colors;
+    @apply text-lg md:text-base hover:text-white-800 transition-colors;
   }
 
   .nav-sidebar {
     @apply absolute left-0 right-0 bg-black-200 backdrop-blur-sm transition-all duration-300 ease-in-out overflow-hidden z-20 mx-auto sm:hidden block;
+  }
+
+  /* navbar surface - a translucent theme-adaptive header background,
+     distinct from surface-card since it needs its own alpha + a visible
+     border in light mode (surface-card's border reads as invisible when
+     the header sits directly on a matching light body) */
+  .navbar-surface {
+    @apply backdrop-blur-md;
+    background-color: rgb(var(--navbar-bg));
+    border-color: var(--navbar-border);
   }
 
   .text-gray_gradient {
@@ -187,15 +218,31 @@ body {
   }
 
   .field-input {
-    @apply w-full bg-black-300 px-5 py-2 min-h-14 rounded-lg placeholder:text-white-500 text-lg text-white-800 shadow-black-200 shadow-2xl focus:outline-none focus:border-2 focus:border-gray-500 transition-[border-width] duration-100 ease-in-out;
+    @apply w-full bg-black-300 px-5 py-2 min-h-14 rounded-lg placeholder:text-white-500 text-lg text-white-800 shadow-[var(--field-shadow)] focus:outline-none focus:border-2 focus:border-gray-500 transition-[border-width] duration-100 ease-in-out;
   }
 
   .field-btn {
-    @apply bg-black-500 px-5 py-2 min-h-12 rounded-lg shadow-black-200 shadow-2xl flex justify-center items-center text-lg text-white-800 gap-3;
+    @apply bg-black-500 px-5 py-2 min-h-12 rounded-lg shadow-[var(--field-shadow)] flex justify-center items-center text-lg text-white-800 gap-3;
+  }
+
+  /* native file input - browsers ignore most styling on the control itself,
+     so the button chrome is styled via ::file-selector-button below */
+  .field-input[type="file"] {
+    @apply py-1.5 text-white-600;
+  }
+
+  .field-input[type="file"]::file-selector-button {
+    @apply cursor-pointer mr-4 px-4 py-2 rounded-md border-0 bg-black-500 text-white-800 text-sm font-semibold transition-colors hover:bg-brand-pink hover:text-white;
   }
 
   .field-btn_arrow {
     @apply w-2.5 h-2.5 object-contain;
+    filter: brightness(0);
+  }
+
+  /* mobile menu/close icons ship as fixed-white SVGs; invert them in light
+     mode so they stay visible against the now-light navbar */
+  .nav-menu-icon {
     filter: brightness(0);
   }
 
@@ -245,7 +292,8 @@ body {
   }
 }
 
-:root[data-theme="dark"] .field-btn_arrow {
+:root[data-theme="dark"] .field-btn_arrow,
+:root[data-theme="dark"] .nav-menu-icon {
   filter: brightness(0) invert(1);
 }
 

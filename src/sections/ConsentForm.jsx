@@ -159,7 +159,7 @@ const ConsentForm = () => {
 
     return (
     <section className="c-space my-20" id="consent">
-        <div className="relative min-h-screen flex items-center justify-center flex-col py-10 bg-black/90 rounded-lg shadow-2xl backdrop-blur-md">
+        <div className="relative min-h-screen flex items-center justify-center flex-col py-10 bg-black-300/90 rounded-lg shadow-2xl backdrop-blur-md">
             
             <div className="contact-container">
                 <h3 className="head-text">✨Consent to shoot✨</h3>

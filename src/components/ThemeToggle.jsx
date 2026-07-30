@@ -11,16 +11,16 @@ const ThemeToggle = () => {
             role="switch"
             aria-checked={isLight}
             aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
-            className="relative w-16 h-8 rounded-full bg-black-500 border border-black-300 shrink-0 transition-colors"
+            className="relative w-12 h-6 rounded-full bg-black-500 border border-black-300 shrink-0 transition-colors"
         >
             <span
                 aria-hidden="true"
-                className={`absolute top-0.5 left-0.5 w-7 h-7 rounded-full bg-brand-pink shadow-md transition-transform duration-200 ${isLight ? 'translate-x-8' : 'translate-x-0'}`}
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-[rgb(var(--theme-accent))] shadow-md transition-transform duration-200 ${isLight ? 'translate-x-6' : 'translate-x-0'}`}
             />
-            <svg viewBox="0 0 24 24" className="absolute left-1.5 top-1.5 w-5 h-5 z-10 fill-none stroke-white stroke-2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" className="absolute left-1 top-[5px] w-3.5 h-3.5 z-10 fill-none stroke-[rgb(var(--color-white-800))] stroke-2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
-            <svg viewBox="0 0 24 24" className="absolute right-1.5 top-1.5 w-5 h-5 z-10 fill-none stroke-white stroke-2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" className="absolute right-1 top-[5px] w-3.5 h-3.5 z-10 fill-none stroke-[rgb(var(--color-white-800))] stroke-2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="4" />
                 <line x1="12" y1="1" x2="12" y2="3" />
                 <line x1="12" y1="21" x2="12" y2="23" />
