@@ -51,9 +51,8 @@ const Clips = () => {
         <main className="max-w-7xl mx-auto">
             <Navbar navLinks={navLinks} />
             
-            <section className="c-space pt-32 pb-16">
+            <section className="c-space pt-24 pb-16">
                 <div className="text-center max-w-2xl mx-auto mb-8">
-                    {/* <p className="text-white-600 text-lg"> */}
                     <p className="text-white-600 mt-4 text-lg">
                         Highlights from the videos we&apos;ve filmed. Catch the full episodes on{' '}
                         <a
@@ -108,11 +107,13 @@ const Clips = () => {
                                     )}
                                 </div>
 
-                                <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+                                <div className="flex flex-wrap justify-between">
+                                    <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+                                        {collection.clips.map((clip) => (
+                                            <ClipCard key={clip.id} clip={{ ...clip, title: collection.title }} />
+                                        ))}
+                                    </div>
                                     <CastAvatars names={cast} />
-                                    {collection.clips.map((clip) => (
-                                        <ClipCard key={clip.id} clip={{ ...clip, title: collection.title }} />
-                                    ))}
                                 </div>
                             </div>
                         )
