@@ -107,8 +107,8 @@ const Clips = () => {
                                     )}
                                 </div>
 
-                                <div className="flex flex-wrap justify-between">
-                                    <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+                                <div className="flex flex-wrap justify-between gap-4">
+                                    <div className="flex flex-wrap gap-3 justify-start">
                                         {collection.clips.map((clip) => (
                                             <ClipCard key={clip.id} clip={{ ...clip, title: collection.title }} />
                                         ))}
