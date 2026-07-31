@@ -56,12 +56,12 @@ const Clips = () => {
                     <p className="text-white-600 mt-4 text-lg">
                         Highlights from the videos we&apos;ve filmed. Catch the full episodes on{' '}
                         <a
-                            href="https://www.youtube.com/@rankandmatch"
+                            href="https://www.youtube.com/@bulfighter"
                             target="_blank"
                             rel="noreferrer"
                             className="link-accent"
                         >
-                            YouTube @rankandmatch
+                            YouTube @bulfighter
                         </a>.
                     </p>
                 </div>
@@ -76,7 +76,8 @@ const Clips = () => {
 
                 <div className="flex flex-col gap-8">
                     {collections.map((collection) => {
-                        const fullEpisodeId = collection.clips.find((clip) => clip.type === 'video')?.youtubeId
+                        const videoClip = collection.clips.find((clip) => clip.type === 'video')
+                        const shortClips = collection.clips.filter((clip) => clip.type !== 'video')
                         const topic = topicsById[collection.topicId]
                         const cast = topic
                             ? [...new Set([...(topic.judges ?? []), ...(topic.contestants ?? []), ...(topic.castMembers ?? [])])]
@@ -94,9 +95,9 @@ const Clips = () => {
                                         )}
                                     </div>
 
-                                    {fullEpisodeId && (
+                                    {videoClip && (
                                         <a
-                                            href={`https://www.youtube.com/watch?v=${fullEpisodeId}`}
+                                            href={`https://www.youtube.com/watch?v=${videoClip.youtubeId}`}
                                             target="_blank"
                                             rel="noreferrer"
                                             className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors shrink-0"
@@ -107,12 +108,13 @@ const Clips = () => {
                                     )}
                                 </div>
 
-                                <div className="flex flex-wrap justify-between gap-4">
-                                    <div className="flex flex-wrap gap-3 justify-start">
-                                        {collection.clips.map((clip) => (
-                                            <ClipCard key={clip.id} clip={{ ...clip, title: collection.title }} />
-                                        ))}
-                                    </div>
+                                <div className="flex flex-wrap gap-3 justify-start items-start">
+                                    {videoClip && (
+                                        <ClipCard clip={{ ...videoClip, title: collection.title }} />
+                                    )}
+                                    {shortClips.map((clip) => (
+                                        <ClipCard key={clip.id} clip={{ ...clip, title: collection.title }} />
+                                    ))}
                                     <CastAvatars names={cast} />
                                 </div>
                             </div>

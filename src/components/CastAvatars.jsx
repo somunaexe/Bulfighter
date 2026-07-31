@@ -6,7 +6,7 @@ const CastAvatars = ({ names }) => {
     if (!names?.length) return null
 
     return (
-        <div className="flex items-center flex-shrink-0" aria-label={`Cast: ${names.join(', ')}`}>
+        <div className="flex flex-col sm:flex-row items-center flex-shrink-0 ml-auto" aria-label={`Cast: ${names.join(', ')}`}>
             {names.map((name, index) => (
                 <span
                     key={name}
@@ -14,7 +14,7 @@ const CastAvatars = ({ names }) => {
                     className={`
                         w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full border-2 border-black-100 bg-black-500
                         flex items-center justify-center text-lg sm:text-2xl font-semibold text-white-800
-                        ${index > 0 ? '-ml-7 sm:-ml-10 md:-ml-10' : ''}
+                        ${index > 0 ? '-mt-7 sm:mt-0 sm:-ml-10' : ''}
                     `}
                 >
                     {name.trim().charAt(0).toUpperCase()}

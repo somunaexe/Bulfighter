@@ -23,7 +23,7 @@ const Navbar = ({navLinks, onLogout}) => {
     <header className="navbar-surface fixed top-0 left-0 right-0 z-50 border-b">
         <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center py-5 mx-auto c-space">
-                <div className="flex items-center gap-5">
+                <div className="flex items-center gap-3 sm:gap-5">
                     <a
                         href="/"
                         className="text-white-600 font-bold text-xl hover:text-[rgb(var(--theme-accent))] transition-colors">
@@ -31,7 +31,7 @@ const Navbar = ({navLinks, onLogout}) => {
                     </a>
                     <Links />
                 </div>
-                <div className="flex items-center gap-3 sm:hidden">
+                <div className="flex items-center gap-2 sm:hidden">
                     <ThemeToggle />
                     <button
                     onClick={toggleMenu}

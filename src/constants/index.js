@@ -38,23 +38,23 @@ export const socialLinks = [
   {
     id: 1,
     name: 'Youtube',
-    href: 'https://www.youtube.com/@rankandmatch',
+    href: 'https://www.youtube.com/@Bulfighter',
   },
   {
     id: 2,
     name: 'Tiktok',
-    href: 'https://www.tiktok.com/@rankandmatch',
+    href: 'https://www.tiktok.com/@bul.fighter',
   },
   {
     id: 3,
     name: 'Instagram',
-    href: 'https://www.instagram.com/rankandmatch',
+    href: 'https://www.instagram.com/bulfighter.exe',
   },
-//   {
-//     id: 4,
-//     name: 'Snapchat',
-//     href: 'https://www.snapchat.com/rankandmatch',
-//   },
+  {
+    id: 4,
+    name: 'Snapchat',
+    href: 'https://www.snapchat.com/@bulfighter.exe',
+  },
 ]
 
 export const calculateSizes = (isSmall, isMobile, isTablet) => {
