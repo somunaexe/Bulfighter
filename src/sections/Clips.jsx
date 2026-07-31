@@ -106,7 +106,6 @@ const Clips = () => {
                                                 Watch full episode
                                                 <img src="/assets/arrow-up.png" alt="" className="field-btn_arrow" />
                                             </a>
-                                            <CastAvatars names={cast} />
                                         </div>
                                     )}
                                 </div>
@@ -115,6 +114,8 @@ const Clips = () => {
                                     {collection.clips.map((clip) => (
                                         <ClipCard key={clip.id} clip={{ ...clip, title: collection.title }} />
                                     ))}
+                                    
+                                    <CastAvatars names={cast} />
                                 </div>
                             </div>
                         )
