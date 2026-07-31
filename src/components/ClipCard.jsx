@@ -11,8 +11,8 @@ const ClipCard = ({ clip }) => {
     return (
         <div
             className={`
-                relative flex-shrink-0 h-32 sm:h-40 md:h-48 overflow-hidden surface-card
-                ${isShort ? 'aspect-[9/16]' : 'aspect-video'}
+                relative overflow-hidden surface-card
+                ${isShort ? 'flex-shrink-0 h-32 sm:h-40 md:h-48 aspect-[9/16]' : 'w-full aspect-video sm:w-auto sm:flex-shrink-0 sm:h-40 md:h-48'}
             `}
         >
             {isShort && (
