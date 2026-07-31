@@ -56,12 +56,12 @@ const Clips = () => {
                     <p className="text-white-600 mt-4 text-lg">
                         Highlights from the videos we&apos;ve filmed. Catch the full episodes on{' '}
                         <a
-                            href="https://www.youtube.com/@rankandmatch"
+                            href="https://www.youtube.com/@bulfighter"
                             target="_blank"
                             rel="noreferrer"
                             className="link-accent"
                         >
-                            YouTube @rankandmatch
+                            YouTube @bulfighter
                         </a>.
                     </p>
                 </div>

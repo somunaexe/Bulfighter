@@ -1,8 +1,8 @@
-# Rank and Match
+# Bulfighter
 
 Live site: [rankandmatch.com](https://rankandmatch.com/)
 
-The official source code for **Rank and Match** — a React single-page application with an interactive 3D globe visualisation, animated UI, and a serverless contact/email pipeline.
+The official source code for **Bulfighter** — a React single-page application with an interactive 3D globe visualisation, animated UI, and a serverless contact/email pipeline.
 
 ## Tech Stack
 
@@ -31,7 +31,7 @@ The official source code for **Rank and Match** — a React single-page applicat
 ## Project Structure
 
 ```
-RankAndMatch/
+Bulfighter/
 ├── .github/workflows/   # CI/CD pipelines
 ├── nodemailer-layer/     # AWS Lambda layer for the email/contact backend
 ├── public/               # Static assets
@@ -52,8 +52,8 @@ RankAndMatch/
 ### Installation
 
 ```bash
-git clone https://github.com/somunaexe/RankAndMatch.git
-cd RankAndMatch
+git clone https://github.com/somunaexe/Bulfighter.git
+cd Bulfighter
 npm install
 ```
 
