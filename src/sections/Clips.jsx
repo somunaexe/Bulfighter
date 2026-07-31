@@ -85,7 +85,7 @@ const Clips = () => {
 
                         return (
                             <div key={collection.id}>
-                                <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 mb-6">
+                                <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 mb-6">
                                     <div className="max-w-xl">
                                         <h2 className="text-2xl font-semibold text-white-800">
                                             {collection.title}
