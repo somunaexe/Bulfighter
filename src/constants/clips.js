@@ -6,6 +6,9 @@
 export const clipCollections = [
   {
     id: 'spotify-wrapped',
+    // matches the "Spotify Wrapped" row (topicId 3) in the Topics table,
+    // used to pull the cast's names for the avatar stack on the Clips page.
+    topicId: '3',
     title: 'Ranking and Matching Spotify Wrapped Playlists',
     description: "We put everyone's Spotify Wrapped playlists head to head to see whose taste actually holds up.",
     clips: [
@@ -15,6 +18,9 @@ export const clipCollections = [
   },
   {
     id: 'hot-takes-special',
+    // matches the "5 Hot Takes" row (topicId 4), not "5 Hot Takes II"
+    // (topicId 6, a separate not-yet-uploaded shoot).
+    topicId: '4',
     title: '5 Hot Takes Special',
     description: 'Five unfiltered hot takes, no notes - watch the full reactions to find out who backs down.',
     clips: [
