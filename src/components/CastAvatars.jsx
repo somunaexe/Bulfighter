@@ -1,6 +1,7 @@
 // Headshot placeholder stack - shows each cast member's initial since no
 // profile images are stored yet. Swap the <span> for an <img> per person
-// once photos exist.
+// once photos exist. Sized to match ClipCard's height so the cast reads as
+// a prominent feature, not a small icon row.
 const CastAvatars = ({ names }) => {
     if (!names?.length) return null
 
@@ -11,9 +12,9 @@ const CastAvatars = ({ names }) => {
                     key={name}
                     title={name}
                     className={`
-                        w-9 h-9 rounded-full border-2 border-black-100 bg-black-500
-                        flex items-center justify-center text-sm font-semibold text-white-800
-                        ${index > 0 ? '-ml-3' : ''}
+                        w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full border-4 border-black-100 bg-black-500
+                        flex items-center justify-center text-3xl sm:text-4xl md:text-5xl font-semibold text-white-800
+                        ${index > 0 ? '-ml-8 sm:-ml-10 md:-ml-12' : ''}
                     `}
                 >
                     {name.trim().charAt(0).toUpperCase()}
