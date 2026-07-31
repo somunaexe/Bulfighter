@@ -12,7 +12,7 @@ const CastAvatars = ({ names }) => {
                     key={name}
                     title={name}
                     className={`
-                        w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full border-4 border-black-100 bg-black-500
+                        w-18 h-18 sm:w-24 sm:h-24 md:w-30 md:h-30 rounded-full border-4 border-black-100 bg-black-500
                         flex items-center justify-center text-3xl sm:text-4xl md:text-5xl font-semibold text-white-800
                         ${index > 0 ? '-ml-8 sm:-ml-10 md:-ml-12' : ''}
                     `}
