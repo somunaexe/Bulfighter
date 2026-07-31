@@ -96,20 +96,22 @@ const Clips = () => {
                                     </div>
 
                                     {fullEpisodeId && (
-                                        <a
-                                            href={`https://www.youtube.com/watch?v=${fullEpisodeId}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors shrink-0"
-                                        >
-                                            Watch full episode
-                                            <img src="/assets/arrow-up.png" alt="" className="field-btn_arrow" />
-                                        </a>
+                                        <div className="flex flex-col items-end gap-3 shrink-0">
+                                            <a
+                                                href={`https://www.youtube.com/watch?v=${fullEpisodeId}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors"
+                                            >
+                                                Watch full episode
+                                                <img src="/assets/arrow-up.png" alt="" className="field-btn_arrow" />
+                                            </a>
+                                            <CastAvatars names={cast} />
+                                        </div>
                                     )}
                                 </div>
 
                                 <div className="flex flex-wrap gap-5 justify-center sm:justify-start">
-                                    <CastAvatars names={cast} />
                                     {collection.clips.map((clip) => (
                                         <ClipCard key={clip.id} clip={{ ...clip, title: collection.title }} />
                                     ))}
