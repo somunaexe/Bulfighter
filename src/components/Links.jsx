@@ -19,7 +19,7 @@ const Links = () => {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={link.name}
-                    className="text-white-800 hover:text-brand-pink transition-colors"
+                    className="text-white-800 hover:text-[rgb(var(--theme-accent))] transition-colors"
                 >
                     <Icon className="w-6 h-6" />
                 </a>

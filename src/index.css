@@ -232,7 +232,7 @@ body {
   }
 
   .field-input[type="file"]::file-selector-button {
-    @apply cursor-pointer mr-4 px-4 py-2 rounded-md border-0 bg-black-500 text-white-800 text-sm font-semibold transition-colors hover:bg-brand-pink hover:text-white;
+    @apply cursor-pointer mr-4 px-4 py-2 rounded-md border-0 bg-black-500 text-white-800 text-sm font-semibold transition-colors hover:bg-[rgb(var(--theme-accent))] hover:text-white;
   }
 
   .field-btn_arrow {
@@ -250,7 +250,7 @@ body {
      Adaptive text color + underline so it stays legible over any
      background this site uses, in either theme. */
   .link-accent {
-    @apply font-semibold text-white-800 underline decoration-2 underline-offset-2 decoration-brand-pink hover:text-brand-pink hover:decoration-brand-pink transition-colors;
+    @apply font-semibold text-white-800 underline decoration-2 underline-offset-2 decoration-[rgb(var(--theme-accent))] hover:text-[rgb(var(--theme-accent))] hover:decoration-[rgb(var(--theme-accent))] transition-colors;
   }
 
   /* lighter-weight link style for dense contexts like data tables */
@@ -278,7 +278,7 @@ body {
   }
 
   .tab-link-active {
-    @apply bg-brand-pink text-white;
+    @apply bg-[rgb(var(--theme-accent))] text-white;
   }
 
   .tab-link-inactive {

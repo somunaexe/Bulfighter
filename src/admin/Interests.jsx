@@ -160,7 +160,7 @@ const Interests = () => {
                                                     <button
                                                         aria-label="Send consent form"
                                                         title="Send consent form"
-                                                        className="w-9 h-9 rounded-full bg-black-500 hover:bg-brand-pink flex items-center justify-center transition-colors"
+                                                        className="w-9 h-9 rounded-full bg-black-500 hover:bg-[rgb(var(--theme-accent))] flex items-center justify-center transition-colors"
                                                         onClick={() => {
                                                             setCurrentInterestId(interestId)
                                                             setModalIsOpen(true)
