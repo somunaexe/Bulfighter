@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Navbar from './Navbar.jsx'
 import Footer from './Footer.jsx'
 import ClipCard from '../components/ClipCard.jsx'
+import CastAvatars from '../components/CastAvatars.jsx'
 import { navLinks } from '../constants/index.js'
 import { clipCollections } from '../constants/clips.js'
 
@@ -9,9 +10,21 @@ import { clipCollections } from '../constants/clips.js'
 // fetch so swapping in the real request later is a one-line change.
 const fetchClips = async () => clipCollections
 
+// Same Topics table the admin page reads from - used here only to pull
+// cast names (by topicId) for the avatar stack under each episode's CTA.
+const TOPICS_URL = 'https://m0umxkjpy6.execute-api.eu-north-1.amazonaws.com/dev'
+
+const fetchTopics = async () => {
+    const response = await fetch(TOPICS_URL, { headers: { Accept: 'application/json' } })
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const data = await response.json()
+    return data.topics
+}
+
 const Clips = () => {
     const [collections, setCollections] = useState([])
     const [loading, setLoading] = useState(true)
+    const [topicsById, setTopicsById] = useState({})
 
     useEffect(() => {
         let active = true
@@ -20,6 +33,17 @@ const Clips = () => {
             setCollections(data)
             setLoading(false)
         })
+        return () => { active = false }
+    }, [])
+
+    useEffect(() => {
+        let active = true
+        fetchTopics()
+            .then((topics) => {
+                if (!active) return
+                setTopicsById(Object.fromEntries(topics.map((topic) => [topic.topicId, topic])))
+            })
+            .catch(() => {}) // cast avatars are decorative - a failed fetch shouldn't block the clips list
         return () => { active = false }
     }, [])
 
@@ -54,6 +78,10 @@ const Clips = () => {
                 <div className="flex flex-col gap-16">
                     {collections.map((collection) => {
                         const fullEpisodeId = collection.clips.find((clip) => clip.type === 'video')?.youtubeId
+                        const topic = topicsById[collection.topicId]
+                        const cast = topic
+                            ? [...new Set([...(topic.judges ?? []), ...(topic.contestants ?? []), ...(topic.castMembers ?? [])])]
+                            : []
 
                         return (
                             <div key={collection.id}>
@@ -68,15 +96,18 @@ const Clips = () => {
                                     </div>
 
                                     {fullEpisodeId && (
-                                        <a
-                                            href={`https://www.youtube.com/watch?v=${fullEpisodeId}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors shrink-0"
-                                        >
-                                            Watch full episode
-                                            <img src="/assets/arrow-up.png" alt="" className="field-btn_arrow" />
-                                        </a>
+                                        <div className="flex flex-col items-end gap-3 shrink-0">
+                                            <a
+                                                href={`https://www.youtube.com/watch?v=${fullEpisodeId}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors"
+                                            >
+                                                Watch full episode
+                                                <img src="/assets/arrow-up.png" alt="" className="field-btn_arrow" />
+                                            </a>
+                                            <CastAvatars names={cast} />
+                                        </div>
                                     )}
                                 </div>
 
