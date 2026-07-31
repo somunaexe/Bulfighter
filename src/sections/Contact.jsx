@@ -283,7 +283,7 @@ const Contact = () => {
                         <input type="file" accept="image/*,video/*" multiple name="spotify" onChange={handleSpotifyChange} ref={spotifyInputRef} className="field-input" />
                     </label> */}
 
-                    <button className="field-btn hover:bg-brand-pink transition-colors" type="submit" disabled={loading}>
+                    <button className="field-btn hover:bg-[rgb(var(--theme-accent))] transition-colors" type="submit" disabled={loading}>
                         {loading ? 'Sending...' : uploading ? 'Uploading files' : 'Show your interest'}
                         <img src="/assets/arrow-up.png" alt="arrow-up" className="field-btn_arrow"/>
                     </button>

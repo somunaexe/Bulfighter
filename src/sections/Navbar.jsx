@@ -26,7 +26,7 @@ const Navbar = ({navLinks, onLogout}) => {
                 <div className="flex items-center gap-5">
                     <a
                         href="/"
-                        className="text-white-600 font-bold text-xl hover:text-brand-pink transition-colors">
+                        className="text-white-600 font-bold text-xl hover:text-[rgb(var(--theme-accent))] transition-colors">
                         Rank & Match
                     </a>
                     <Links />
@@ -53,7 +53,7 @@ const Navbar = ({navLinks, onLogout}) => {
                     {onLogout && (
                         <button
                             onClick={onLogout}
-                            className="text-sm font-semibold text-white-600 border border-black-500 rounded-md px-3 py-1.5 hover:text-white-800 hover:border-brand-pink transition-colors"
+                            className="text-sm font-semibold text-white-600 border border-black-500 rounded-md px-3 py-1.5 hover:text-white-800 hover:border-[rgb(var(--theme-accent))] transition-colors"
                         >
                             Log out
                         </button>
@@ -67,7 +67,7 @@ const Navbar = ({navLinks, onLogout}) => {
                 {onLogout && (
                     <button
                         onClick={onLogout}
-                        className="text-sm font-semibold text-white-600 border border-black-500 rounded-md px-3 py-1.5 w-full hover:text-white-800 hover:border-brand-pink transition-colors"
+                        className="text-sm font-semibold text-white-600 border border-black-500 rounded-md px-3 py-1.5 w-full hover:text-white-800 hover:border-[rgb(var(--theme-accent))] transition-colors"
                     >
                         Log out
                     </button>
