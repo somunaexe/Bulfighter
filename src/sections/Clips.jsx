@@ -52,18 +52,42 @@ const Clips = () => {
                 )}
 
                 <div className="flex flex-col gap-16">
-                    {collections.map((collection) => (
-                        <div key={collection.id}>
-                            <h2 className="text-2xl font-semibold text-white mb-6">
-                                {collection.title}
-                            </h2>
-                            <div className="flex flex-wrap gap-5 justify-center sm:justify-start">
-                                {collection.clips.map((clip) => (
-                                    <ClipCard key={clip.id} clip={{ ...clip, title: collection.title }} />
-                                ))}
+                    {collections.map((collection) => {
+                        const fullEpisodeId = collection.clips.find((clip) => clip.type === 'video')?.youtubeId
+
+                        return (
+                            <div key={collection.id}>
+                                <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 mb-6">
+                                    <div className="max-w-xl">
+                                        <h2 className="text-2xl font-semibold text-white-800">
+                                            {collection.title}
+                                        </h2>
+                                        {collection.description && (
+                                            <p className="text-white-600 mt-2">{collection.description}</p>
+                                        )}
+                                    </div>
+
+                                    {fullEpisodeId && (
+                                        <a
+                                            href={`https://www.youtube.com/watch?v=${fullEpisodeId}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors shrink-0"
+                                        >
+                                            Watch full episode
+                                            <img src="/assets/arrow-up.png" alt="" className="field-btn_arrow" />
+                                        </a>
+                                    )}
+                                </div>
+
+                                <div className="flex flex-wrap gap-5 justify-center sm:justify-start">
+                                    {collection.clips.map((clip) => (
+                                        <ClipCard key={clip.id} clip={{ ...clip, title: collection.title }} />
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             </section>
 

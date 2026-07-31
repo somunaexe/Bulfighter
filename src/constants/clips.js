@@ -7,6 +7,7 @@ export const clipCollections = [
   {
     id: 'spotify-wrapped',
     title: 'Ranking and Matching Spotify Wrapped Playlists',
+    description: "We put everyone's Spotify Wrapped playlists head to head to see whose taste actually holds up.",
     clips: [
       { id: 'spotify-wrapped-1', type: 'video', youtubeId: 'Gc1O1e99SzA', start: 1322 },
       { id: 'spotify-wrapped-2', type: 'short', youtubeId: '8rIM4_ctfXg' },
@@ -15,6 +16,7 @@ export const clipCollections = [
   {
     id: 'hot-takes-special',
     title: '5 Hot Takes Special',
+    description: 'Five unfiltered hot takes, no notes - watch the full reactions to find out who backs down.',
     clips: [
       { id: 'hot-takes-1', type: 'video', youtubeId: 'h6nGIqxcXWg', start: 110 },
       { id: 'hot-takes-2', type: 'short', youtubeId: '2PwFtySflVU' },
