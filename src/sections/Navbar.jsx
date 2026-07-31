@@ -27,7 +27,7 @@ const Navbar = ({navLinks, onLogout}) => {
                     <a
                         href="/"
                         className="text-white-600 font-bold text-xl hover:text-[rgb(var(--theme-accent))] transition-colors">
-                        Rank & Match
+                        Bulfighter
                     </a>
                     <Links />
                 </div>
