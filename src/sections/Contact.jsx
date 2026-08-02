@@ -191,7 +191,9 @@ const Contact = () => {
             <video width="600" autoPlay muted loop playsInline webkit-playsinline >
                 <source src="assets/website-comp.mp4" type="video/mp4"/>
             </video>
-            <img src="assets/orange-name-nobg.png" alt="name" className='absolute flex-shrink min-w-0 w-full md:w-1/2 h-auto'/>
+            <h2 className="absolute w-full md:w-1/2 text-center text-5xl sm:text-6xl md:text-7xl font-black text-brand-gradient px-4">
+                Bulfighter
+            </h2>
             {/* <DVDLogo /> */}
         </div>
         
