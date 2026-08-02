@@ -8,7 +8,7 @@ const PHOTOS_PER_PERSON = 3
 const SWIPE_THRESHOLD_PX = 50
 // Desktop grid: size columns so exactly this many people are visible at
 // once; beyond this the row overflows horizontally and scrolls.
-const MAX_VISIBLE_DESKTOP = 5
+const MAX_VISIBLE_DESKTOP = 3
 
 const firstNameOf = (name) => name.trim().split(/\s+/)[0]
 
@@ -162,7 +162,7 @@ const CastModal = ({ isOpen, onClose, names }) => {
                             </svg>
                         </button>
 
-                        <h3 className="head-text text-2xl mb-6">Cast</h3>
+                        <h3 className="head-text !text-3xl mb-6">Cast</h3>
 
                         {/* Small screens: scrollable row of names, tap opens the story viewer */}
                         <div className="sm:hidden overflow-x-auto pb-2">
