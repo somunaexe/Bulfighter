@@ -6,6 +6,9 @@ import { useEffect, useRef, useState } from 'react'
 // instead of this fixed count.
 const PHOTOS_PER_PERSON = 3
 const SWIPE_THRESHOLD_PX = 50
+// Desktop grid: size columns so exactly this many people are visible at
+// once; beyond this the row overflows horizontally and scrolls.
+const MAX_VISIBLE_DESKTOP = 5
 
 const firstNameOf = (name) => name.trim().split(/\s+/)[0]
 
@@ -86,7 +89,7 @@ const CastModal = ({ isOpen, onClose, names }) => {
     const isStoryView = view === 'story'
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
             <button
                 type="button"
                 aria-label="Close"
@@ -99,7 +102,7 @@ const CastModal = ({ isOpen, onClose, names }) => {
                     relative w-full h-full sm:h-auto overflow-hidden
                     transition-all duration-200
                     ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
-                    ${isStoryView ? 'bg-black-100' : 'surface-card sm:max-w-2xl sm:max-h-[80vh] overflow-y-auto p-6 sm:p-8'}
+                    ${isStoryView ? 'bg-black-100' : 'surface-card sm:max-w-7xl sm:max-h-[80vh] overflow-y-auto c-space py-6 sm:py-8'}
                 `}
             >
                 {isStoryView ? (
@@ -178,29 +181,39 @@ const CastModal = ({ isOpen, onClose, names }) => {
 
                         {/* Large screens: magazine-style grid, each person's own photos
                             flow with no gap/border between them, but a small gap between
-                            different people hints there's more to scroll/browse through */}
-                        <div
-                            className="hidden sm:grid gap-x-2"
-                            style={{ gridTemplateColumns: `repeat(${names.length}, 1fr)` }}
-                        >
-                            {names.flatMap((name, colIndex) =>
-                                Array.from({ length: PHOTOS_PER_PERSON }, (_, rowIndex) => (
-                                    <div
-                                        key={`${name}-${rowIndex}`}
-                                        style={{ gridColumn: colIndex + 1, gridRow: rowIndex + 1 }}
-                                        className="relative aspect-[3/4] bg-black-500 flex items-center justify-center overflow-hidden"
-                                    >
-                                        {rowIndex === 0 && (
-                                            <p
-                                                style={{ fontFamily: 'Georgia, serif' }}
-                                                className="text-white-800 text-lg text-center px-2"
-                                            >
-                                                &ldquo;{firstNameOf(name)}&rdquo;
-                                            </p>
-                                        )}
-                                    </div>
-                                ))
-                            )}
+                            different people hints there's more to scroll/browse through.
+                            Columns stay a fixed width (1/MAX_VISIBLE_DESKTOP of the row) so
+                            beyond that many people the rest overflow and the row scrolls,
+                            instead of every column shrinking to squeeze everyone in. */}
+                        <div className="hidden sm:block overflow-x-auto">
+                            <div
+                                className="grid gap-x-2"
+                                style={{
+                                    gridTemplateColumns: `repeat(${names.length}, 1fr)`,
+                                    width: names.length > MAX_VISIBLE_DESKTOP
+                                        ? `${(names.length / MAX_VISIBLE_DESKTOP) * 100}%`
+                                        : '100%',
+                                }}
+                            >
+                                {names.flatMap((name, colIndex) =>
+                                    Array.from({ length: PHOTOS_PER_PERSON }, (_, rowIndex) => (
+                                        <div
+                                            key={`${name}-${rowIndex}`}
+                                            style={{ gridColumn: colIndex + 1, gridRow: rowIndex + 1 }}
+                                            className="relative aspect-[3/4] bg-black-500 flex items-center justify-center overflow-hidden"
+                                        >
+                                            {rowIndex === 0 && (
+                                                <p
+                                                    style={{ fontFamily: 'Georgia, serif' }}
+                                                    className="text-white-800 text-lg text-center px-2"
+                                                >
+                                                    &ldquo;{firstNameOf(name)}&rdquo;
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
                     </>
                 )}
