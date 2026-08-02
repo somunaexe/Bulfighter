@@ -41,13 +41,37 @@ const buildCollection = (topic) => {
     }
 }
 
+// The Topics endpoint is slow (1.5-2s server-side, every call - not just a
+// cold start) and occasionally fails outright. A couple of quick retries
+// smooths over transient failures without the user having to notice.
+const RETRY_ATTEMPTS = 2
+const RETRY_DELAY_MS = 800
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const getTopicsWithRetry = async () => {
+    let lastError
+    for (let attempt = 0; attempt <= RETRY_ATTEMPTS; attempt++) {
+        try {
+            return await getTopics()
+        } catch (err) {
+            lastError = err
+            if (attempt < RETRY_ATTEMPTS) await sleep(RETRY_DELAY_MS)
+        }
+    }
+    throw lastError
+}
+
 const Clips = () => {
     const [topics, setTopics] = useState([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(false)
+    const [retryKey, setRetryKey] = useState(0)
 
     useEffect(() => {
         let active = true
-        getTopics()
+        setLoading(true)
+        setError(false)
+        getTopicsWithRetry()
             .then((topics) => {
                 if (!active) return
                 setTopics(topics)
@@ -55,10 +79,11 @@ const Clips = () => {
             })
             .catch(() => {
                 if (!active) return
+                setError(true)
                 setLoading(false)
             })
         return () => { active = false }
-    }, [])
+    }, [retryKey])
 
     const collections = topics
         .map(buildCollection)
@@ -88,7 +113,20 @@ const Clips = () => {
                     <p className="text-white-600 text-center text-xl">Loading clips...</p>
                 )}
 
-                {!loading && collections.length === 0 && (
+                {!loading && error && (
+                    <div className="text-center">
+                        <p className="text-red-500 text-xl">Couldn&apos;t load clips right now.</p>
+                        <button
+                            type="button"
+                            onClick={() => setRetryKey((key) => key + 1)}
+                            className="field-btn mt-4 mx-auto"
+                        >
+                            Try again
+                        </button>
+                    </div>
+                )}
+
+                {!loading && !error && collections.length === 0 && (
                     <p className="text-white-600 text-center text-xl">No clips yet, check back soon.</p>
                 )}
 
