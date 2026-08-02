@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import DVDLogo from '../components/DVDLogo.jsx';
 // import base64Orders from '../components/FoodOrders.jsx';
 import ConfirmModal from '../components/ConfirmModal.jsx';
+import { createInterest } from '../api/interests.js'
 
 const Contact = () => {
     const formRef = useRef();
@@ -146,14 +147,7 @@ const Contact = () => {
         }
         await baseTheOrder()
 
-        const response = await fetch("https://9rbgl7kyu7.execute-api.eu-north-1.amazonaws.com/dev",
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            }
-        );
-        const data = await response.json();
+        const data = await createInterest(payload);
         console.log(data)
 
         if (data.orderUrlsKey.length > 0) await handleFileUpload(data.orderUrlsKey, 'orders')

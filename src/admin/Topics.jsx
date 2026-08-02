@@ -1,23 +1,13 @@
 import {useState, useEffect} from "react";
 import { format } from "date-fns"
+import { getTopics } from "../api/topics.js"
 
 const Topics = () => {
     const [topics, setTopics] = useState([]);
     const [loaded, setLoaded] = useState(false)
     const loadTopics = async (e) => {
-        const response = await fetch("https://m0umxkjpy6.execute-api.eu-north-1.amazonaws.com/dev",
-            {
-                method: "GET",
-                headers: { "Accept" : "application/json" }
-            }
-        )
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json()
-        const sortedTopics = data.topics.sort((a,b) => new Number(a.serialNumber) - new Number(b.serialNumber))
+        const topics = await getTopics()
+        const sortedTopics = topics.sort((a,b) => new Number(a.serialNumber) - new Number(b.serialNumber))
         console.log(sortedTopics)
         setTopics(sortedTopics);
         setLoaded(true)

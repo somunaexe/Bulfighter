@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom';
 import UnauthConsent from '../components/UnauthConsent';
+import { getInterestByToken } from '../api/consentInvite.js'
+import { submitConsent } from '../api/consents.js'
 
 const ConsentForm = () => {
     const [params] = useSearchParams()
@@ -50,13 +52,7 @@ const ConsentForm = () => {
         console.log(`after checking date: ${validated}`)
 
         try {
-            const response = await fetch(`https://x12ex8za7c.execute-api.eu-north-1.amazonaws.com/dev?interestId=${interest}`,
-                {
-                    method: "GET", 
-                    headers: { "Accept": "application/json" }
-                }
-            );
-            const data = await response.json();
+            const data = await getInterestByToken(interest);
 
             // make sure API returns a boolean
             console.log(data)
@@ -121,15 +117,7 @@ const ConsentForm = () => {
             role: params.get('role'),
         }
 
-        const response = await fetch("https://9llxstbhji.execute-api.eu-north-1.amazonaws.com/dev",
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(consentApplication),
-            }
-        );
-
-        const data = await response.json();
+        const data = await submitConsent(consentApplication);
         setMessage(data || "");
         consent?.scrollIntoView()
 

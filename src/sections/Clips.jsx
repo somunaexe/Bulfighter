@@ -5,21 +5,11 @@ import ClipCard from '../components/ClipCard.jsx'
 import CastAvatars from '../components/CastAvatars.jsx'
 import { navLinks } from '../constants/index.js'
 import { clipCollections } from '../constants/clips.js'
+import { getTopics } from '../api/topics.js'
 
 // Video links aren't in the Topics Lambda yet - this stands in for that
 // fetch so swapping in the real request later is a one-line change.
 const fetchClips = async () => clipCollections
-
-// Same Topics table the admin page reads from - used here only to pull
-// cast names (by topicId) for the avatar stack under each episode's CTA.
-const TOPICS_URL = 'https://m0umxkjpy6.execute-api.eu-north-1.amazonaws.com/dev'
-
-const fetchTopics = async () => {
-    const response = await fetch(TOPICS_URL, { headers: { Accept: 'application/json' } })
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    const data = await response.json()
-    return data.topics
-}
 
 const Clips = () => {
     const [collections, setCollections] = useState([])
@@ -38,7 +28,7 @@ const Clips = () => {
 
     useEffect(() => {
         let active = true
-        fetchTopics()
+        getTopics()
             .then((topics) => {
                 if (!active) return
                 setTopicsById(Object.fromEntries(topics.map((topic) => [topic.topicId, topic])))

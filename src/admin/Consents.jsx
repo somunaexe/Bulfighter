@@ -1,5 +1,6 @@
 import {useState, useEffect} from "react";
 import { format } from "date-fns"
+import { getConsents } from "../api/consents.js"
 
 const roleTextClass = {
     judges: '!text-brand-pink',
@@ -12,19 +13,8 @@ const Consents = () => {
     const [consents, setConsents] = useState([]);
     const [loaded, setLoaded] = useState(false)
     const loadConsents = async () => {
-        const response = await fetch("https://9llxstbhji.execute-api.eu-north-1.amazonaws.com/dev",
-            {
-                method: "GET",
-                headers: { "Accept" : "application/json" }
-            }
-        )
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json()
-        setConsents(data.consents);
+        const consents = await getConsents()
+        setConsents(consents);
         setLoaded(true)
     }
 

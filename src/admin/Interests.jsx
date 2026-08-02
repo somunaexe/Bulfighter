@@ -1,6 +1,8 @@
 import {useState, useEffect} from "react";
 import { format } from "date-fns"
 import ConfirmModal from "../components/ConfirmModal";
+import { getInterests } from "../api/interests.js"
+import { sendConsentInvite } from "../api/consentInvite.js"
 
 const Interests = () => {
     const [interests, setInterests] = useState([]);
@@ -13,19 +15,8 @@ const Interests = () => {
     const [consentError, setConsentError] = useState('')
     const [sending, setSending] = useState(false)
     const loadInterests = async () => {
-        const response = await fetch("https://9rbgl7kyu7.execute-api.eu-north-1.amazonaws.com/dev",
-            {
-                method: "GET",
-                headers: { "Accept" : "application/json" }
-            }
-        )
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json()
-        const sortedInterests = data.interests.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp))
+        const interests = await getInterests()
+        const sortedInterests = interests.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp))
         console.log(sortedInterests)
         setInterests(sortedInterests);
         // setLoaded(false)
@@ -40,15 +31,7 @@ const Interests = () => {
         const currentTime = new Date().toISOString()
 
         try {
-            const res = await fetch("https://x12ex8za7c.execute-api.eu-north-1.amazonaws.com/dev/",
-                {
-                    method: "POST",
-                    headers: { "Content-Type" : "application/json" },
-                    body: JSON.stringify({interestId: currentInterestId, email: email, topicId: topicId.trim(), role: role, currentTime: currentTime})
-                }
-            )
-            if (!res.ok) throw new Error(`HTTP ${res.status}`)
-            const data = await res.json()
+            const data = await sendConsentInvite({interestId: currentInterestId, email: email, topicId: topicId.trim(), role: role, currentTime: currentTime})
             setConsentMessage(data.message || "Consent form sent")
             setTopicId('')
             setRole('judges')
