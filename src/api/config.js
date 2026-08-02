@@ -1,9 +1,8 @@
-// Base URLs for the site's Lambda endpoints. Kept out of source control via
-// .env (see .env.example for the required keys) so they aren't committed to
-// git - note this does NOT hide them from end users, since a browser app has
-// to call these URLs directly; it only keeps them out of the repo itself.
-export const TOPICS_API_URL = import.meta.env.VITE_TOPICS_API_URL
-export const INTERESTS_API_URL = import.meta.env.VITE_INTERESTS_API_URL
-export const CONSENTS_API_URL = import.meta.env.VITE_CONSENTS_API_URL
-export const CONSENT_INVITE_API_URL = import.meta.env.VITE_CONSENT_INVITE_API_URL
-export const ADMIN_AUTH_API_URL = import.meta.env.VITE_ADMIN_AUTH_API_URL
+// Base URLs for the site's Lambda endpoints. Centralized here so every
+// component calls through src/api/ instead of inlining its own fetch() and
+// URL - this is the single place to update if an endpoint ever changes.
+export const TOPICS_API_URL = 'https://m0umxkjpy6.execute-api.eu-north-1.amazonaws.com/dev'
+export const INTERESTS_API_URL = 'https://9rbgl7kyu7.execute-api.eu-north-1.amazonaws.com/dev'
+export const CONSENTS_API_URL = 'https://9llxstbhji.execute-api.eu-north-1.amazonaws.com/dev'
+export const CONSENT_INVITE_API_URL = 'https://x12ex8za7c.execute-api.eu-north-1.amazonaws.com/dev'
+export const ADMIN_AUTH_API_URL = 'https://fheqb7045j.execute-api.eu-north-1.amazonaws.com/dev'
