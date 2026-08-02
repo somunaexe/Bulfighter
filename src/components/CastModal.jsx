@@ -69,13 +69,15 @@ const CastModal = ({ isOpen, onClose, names }) => {
 
                 <div className="flex flex-wrap gap-6">
                     {names.map((name) => {
-                        const initial = name.trim().charAt(0).toUpperCase()
+                        const trimmed = name.trim()
+                        const firstName = trimmed.split(/\s+/)[0]
+                        const initial = trimmed.charAt(0).toUpperCase()
                         return (
                             <div key={name} className="flex flex-col items-center gap-3 w-24">
                                 <span className="w-20 h-20 rounded-full bg-black-500 flex items-center justify-center text-3xl font-semibold text-white-800">
                                     {initial}
                                 </span>
-                                <p className="text-sm font-semibold text-white-800 text-center">{name}</p>
+                                <p className="text-sm font-semibold text-white-800 text-center">{firstName}</p>
 
                                 <div className="flex flex-col gap-2 w-full">
                                     {Array.from({ length: PHOTO_PLACEHOLDER_COUNT }).map((_, i) => (
