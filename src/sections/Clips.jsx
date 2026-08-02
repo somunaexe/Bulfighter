@@ -4,43 +4,71 @@ import Footer from './Footer.jsx'
 import ClipCard from '../components/ClipCard.jsx'
 import CastAvatars from '../components/CastAvatars.jsx'
 import { navLinks } from '../constants/index.js'
-import { clipCollections } from '../constants/clips.js'
 import { getTopics } from '../api/topics.js'
+import { parseYoutubeVideo } from '../utils/youtube.js'
 
-// Video links aren't in the Topics Lambda yet - this stands in for that
-// fetch so swapping in the real request later is a one-line change.
-const fetchClips = async () => clipCollections
+// castMembers/crew entries are either a display name (older topics) or a
+// consentId uuid referencing the Consents table (newer topics, cast by
+// getCastNames.js once deployed - see src/backend/getCastNames.js). This
+// page is public, and the full Consents endpoint returns everyone's phone
+// number/email/age/allergies, so uuid entries are skipped here rather than
+// shown as raw ids or resolved by fetching that PII on a public page.
+const CONSENT_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+const getDisplayCast = (rawList) => rawList.filter((entry) => !CONSENT_ID_RE.test(entry))
+
+const buildCollection = (topic) => {
+    const video = parseYoutubeVideo(topic.video)
+    if (!topic.Uploaded || !video) return null
+
+    const shorts = (topic.shorts ?? [])
+        .map(parseYoutubeVideo)
+        .filter(Boolean)
+
+    const clips = [
+        { id: `${topic.topicId}-video`, type: 'video', youtubeId: video.id, start: video.start },
+        ...shorts.map((short, index) => ({ id: `${topic.topicId}-short-${index}`, type: 'short', youtubeId: short.id })),
+    ]
+
+    const rawCast = [...new Set([...(topic.castMembers ?? []), ...(topic.judges ?? []), ...(topic.contestants ?? [])])]
+
+    return {
+        id: topic.topicId,
+        title: topic.Topic,
+        description: topic.description,
+        cast: getDisplayCast(rawCast),
+        clips,
+    }
+}
 
 const Clips = () => {
-    const [collections, setCollections] = useState([])
+    const [topics, setTopics] = useState([])
     const [loading, setLoading] = useState(true)
-    const [topicsById, setTopicsById] = useState({})
-
-    useEffect(() => {
-        let active = true
-        fetchClips().then((data) => {
-            if (!active) return
-            setCollections(data)
-            setLoading(false)
-        })
-        return () => { active = false }
-    }, [])
 
     useEffect(() => {
         let active = true
         getTopics()
             .then((topics) => {
                 if (!active) return
-                setTopicsById(Object.fromEntries(topics.map((topic) => [topic.topicId, topic])))
+                setTopics(topics)
+                setLoading(false)
             })
-            .catch(() => {}) // cast avatars are decorative - a failed fetch shouldn't block the clips list
+            .catch(() => {
+                if (!active) return
+                setLoading(false)
+            })
         return () => { active = false }
     }, [])
+
+    const collections = topics
+        .map(buildCollection)
+        .filter(Boolean)
+        .sort((a, b) => Number(b.id) - Number(a.id))
 
     return (
         <main className="max-w-7xl mx-auto">
             <Navbar navLinks={navLinks} />
-            
+
             <section className="c-space pt-24 pb-16">
                 <div className="text-center max-w-2xl mx-auto mb-8">
                     <p className="text-white-600 mt-4 text-lg">
@@ -68,10 +96,6 @@ const Clips = () => {
                     {collections.map((collection) => {
                         const videoClip = collection.clips.find((clip) => clip.type === 'video')
                         const shortClips = collection.clips.filter((clip) => clip.type !== 'video')
-                        const topic = topicsById[collection.topicId]
-                        const cast = topic
-                            ? [...new Set([...(topic.judges ?? []), ...(topic.contestants ?? []), ...(topic.castMembers ?? [])])]
-                            : []
 
                         return (
                             <div key={collection.id}>
@@ -105,7 +129,7 @@ const Clips = () => {
                                     {shortClips.map((clip) => (
                                         <ClipCard key={clip.id} clip={{ ...clip, title: collection.title }} />
                                     ))}
-                                    <CastAvatars names={cast} />
+                                    <CastAvatars names={collection.cast} />
                                 </div>
                             </div>
                         )
