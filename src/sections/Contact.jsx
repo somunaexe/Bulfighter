@@ -16,9 +16,11 @@ const Contact = () => {
     const [uploading, setUploading] = useState(false)
     const [uploadedPerc, setUploadedPerc] = useState(0)
     const [dots, setDots] = useState(1);
+    const [hasReadOnboarding, setHasReadOnboarding] = useState(false);
 
     const [form, setForm] = useState({
         name: '',
+        preferredName: '',
         age: '',
         email: '',
         phoneNumber: '',
@@ -128,6 +130,7 @@ const Contact = () => {
         
         const enquiry = {
             fullName: form.name.trim(),
+            preferredName: form.preferredName.trim(),
             age: form.age.toString().trim(),
             email: form.email.trim(),
             phoneNumber: form.phoneNumber.trim(),
@@ -164,6 +167,7 @@ const Contact = () => {
         // reset form fields
         setForm({
             name: "",
+            preferredName: "",
             age: "",
             email: "",
             phoneNumber: "",
@@ -174,6 +178,7 @@ const Contact = () => {
 
         setOrders([])
         setSpotify([])
+        setHasReadOnboarding(false)
         if (orderInputRef.current) orderInputRef.current.value = "";
         if (spotifyInputRef.current) spotifyInputRef.current.value = "";
         setLoading(false);
@@ -206,9 +211,8 @@ const Contact = () => {
             <div className="contact-container">
                 <h3 className="head-text">Join Us</h3>
                 <p className="text-lg text-white-600 mt-3">
-                    If you would like to be part of the Bulfighter show, please fill the form below❗️
+                    If you would like come on Bulfighter or join the crew, please fill the form below❗️
                 </p><br></br>
-                <p className='text-white-600'>If you haven&apos;t read the onboarding sheet, please <a className='link-accent' href='https://docs.google.com/document/d/1iujC1jHTHEVaA7ThfKiUDzcZGGab2137IpTxAjiGhHE/edit?tab=t.0#heading=h.fxnb7f3ekm4h' target='_blank' rel="noreferrer">click here</a> so you know what to expect and how to apply properly.</p>
                 {/* CONFIRMATION OR FAILURE MESSAGE */}
                 {message && (
                     <p id="message" className={`text-lg ${"message" in message ? "text-green-500" : "text-red-500"} mt-3 font-semibold`}>{message.message || message.error || ""}</p>
@@ -219,6 +223,27 @@ const Contact = () => {
                         <p className="field-label">Full Name <span className='text-red-500'>*</span></p>
                         <input type="text" name="name" value={form.name} onChange={handleChange} required 
                             className="field-input" placeholder="ex., John Doe"
+                        />
+                    </label>
+
+                    <label className="space-y-3">
+                        <p className="field-label">Preferred Name <span className='text-red-500'>*</span> </p>
+                        
+                        <p className="field-label">
+                            <small>This name will appear on your{' '}
+                                <a 
+                                    href="/clips" 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    className="link-accent"
+                                >
+                                    cast profile
+                                </a>
+                                {' '}so be sure when filling it!
+                            </small>
+                        </p>
+                        <input type="text" name="preferredName" value={form.preferredName} onChange={handleChange} required 
+                            className="field-input" placeholder="ex., John"
                         />
                     </label>
 
@@ -277,7 +302,25 @@ const Contact = () => {
                         <input type="file" accept="image/*,video/*" multiple name="spotify" onChange={handleSpotifyChange} ref={spotifyInputRef} className="field-input" />
                     </label> */}
 
-                    <button className="field-btn hover:bg-[rgb(var(--theme-accent))] transition-colors" type="submit" disabled={loading}>
+                    {/* Gates the submit button below, same idea as a "terms and
+                        conditions" tickbox - unchecked by default, submit stays
+                        disabled until the user ticks it. */}
+                    <label className="flex items-start gap-3">
+                        <input
+                            type="checkbox"
+                            checked={hasReadOnboarding}
+                            onChange={(e) => setHasReadOnboarding(e.target.checked)}
+                            required
+                            className="mt-1 w-5 h-5 shrink-0 accent-[rgb(var(--theme-accent))]"
+                        />
+                        <span className="text-white-600">
+                            I have read the{' '}
+                            <a className='link-accent' href='https://docs.google.com/document/d/1iujC1jHTHEVaA7ThfKiUDzcZGGab2137IpTxAjiGhHE/edit?tab=t.0#heading=h.fxnb7f3ekm4h' target='_blank' rel="noreferrer">onboarding sheet</a>
+                            {' '}and understand what to expect and how to apply properly. <span className='text-red-500'>*</span>
+                        </span>
+                    </label>
+
+                    <button className="field-btn hover:bg-[rgb(var(--theme-accent))] transition-colors" type="submit" disabled={loading || !hasReadOnboarding}>
                         {loading ? 'Sending...' : uploading ? 'Uploading files' : 'Show your interest'}
                         <img src="/assets/arrow-up.png" alt="arrow-up" className="field-btn_arrow"/>
                     </button>

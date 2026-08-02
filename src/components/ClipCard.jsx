@@ -47,7 +47,7 @@ const ClipCard = ({ clip }) => {
                     )}
                     <span className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
                         <span className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/60 group-hover:bg-[rgb(var(--theme-accent))] transition-colors">
-                            <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5 fill-white">
+                            <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5 fill-white">
                                 <path d="M8 5v14l11-7z" />
                             </svg>
                         </span>

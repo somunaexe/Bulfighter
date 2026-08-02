@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Navbar from './Navbar.jsx'
 import Footer from './Footer.jsx'
 import ClipCard from '../components/ClipCard.jsx'
 import CastAvatars from '../components/CastAvatars.jsx'
+import Pagination from '../components/Pagination.jsx'
 import { navLinks } from '../constants/index.js'
 import { getTopics } from '../api/topics.js'
 import { parseYoutubeVideo } from '../utils/youtube.js'
+
+const PAGE_SIZE = 10
 
 // castMembers/crew entries are either a display name (older topics) or a
 // consentId uuid referencing the Consents table (newer topics, cast by
@@ -41,13 +44,39 @@ const buildCollection = (topic) => {
     }
 }
 
+// The Topics endpoint is slow (1.5-2s server-side, every call - not just a
+// cold start) and occasionally fails outright. A couple of quick retries
+// smooths over transient failures without the user having to notice.
+const RETRY_ATTEMPTS = 2
+const RETRY_DELAY_MS = 800
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const getTopicsWithRetry = async () => {
+    let lastError
+    for (let attempt = 0; attempt <= RETRY_ATTEMPTS; attempt++) {
+        try {
+            return await getTopics()
+        } catch (err) {
+            lastError = err
+            if (attempt < RETRY_ATTEMPTS) await sleep(RETRY_DELAY_MS)
+        }
+    }
+    throw lastError
+}
+
 const Clips = () => {
     const [topics, setTopics] = useState([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(false)
+    const [retryKey, setRetryKey] = useState(0)
+    const [page, setPage] = useState(1)
+    const listRef = useRef(null)
 
     useEffect(() => {
         let active = true
-        getTopics()
+        setLoading(true)
+        setError(false)
+        getTopicsWithRetry()
             .then((topics) => {
                 if (!active) return
                 setTopics(topics)
@@ -55,15 +84,25 @@ const Clips = () => {
             })
             .catch(() => {
                 if (!active) return
+                setError(true)
                 setLoading(false)
             })
         return () => { active = false }
-    }, [])
+    }, [retryKey])
 
     const collections = topics
         .map(buildCollection)
         .filter(Boolean)
         .sort((a, b) => Number(b.id) - Number(a.id))
+
+    const totalPages = Math.max(1, Math.ceil(collections.length / PAGE_SIZE))
+    const currentPage = Math.min(page, totalPages)
+    const pageCollections = collections.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+    const goToPage = (nextPage) => {
+        setPage(nextPage)
+        listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
 
     return (
         <main className="max-w-7xl mx-auto">
@@ -88,12 +127,31 @@ const Clips = () => {
                     <p className="text-white-600 text-center text-xl">Loading clips...</p>
                 )}
 
-                {!loading && collections.length === 0 && (
+                {!loading && error && (
+                    <div className="text-center">
+                        <p className="text-red-500 text-xl">Couldn&apos;t load clips right now.</p>
+                        <button
+                            type="button"
+                            onClick={() => setRetryKey((key) => key + 1)}
+                            className="field-btn mt-4 mx-auto"
+                        >
+                            Try again
+                        </button>
+                    </div>
+                )}
+
+                {!loading && !error && collections.length === 0 && (
                     <p className="text-white-600 text-center text-xl">No clips yet, check back soon.</p>
                 )}
 
-                <div className="flex flex-col gap-8">
-                    {collections.map((collection) => {
+                {!loading && !error && collections.length > 0 && (
+                    <div className="mb-8">
+                        <Pagination page={currentPage} totalPages={totalPages} onChange={goToPage} />
+                    </div>
+                )}
+
+                <div ref={listRef} className="flex flex-col gap-8">
+                    {pageCollections.map((collection) => {
                         const videoClip = collection.clips.find((clip) => clip.type === 'video')
                         const shortClips = collection.clips.filter((clip) => clip.type !== 'video')
 
@@ -135,6 +193,12 @@ const Clips = () => {
                         )
                     })}
                 </div>
+
+                {!loading && !error && collections.length > 0 && (
+                    <div className="mt-8">
+                        <Pagination page={currentPage} totalPages={totalPages} onChange={goToPage} />
+                    </div>
+                )}
             </section>
 
             <Footer />
