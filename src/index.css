@@ -25,6 +25,12 @@
   --heading-grad-from: #6B4E71;
   --heading-grad-to: #8A5A8F;
 
+  /* wordmark gradient (the "Bulfighter" hero text) - reuses the same
+     orange the light-mode accent/glow already use, fading to the brand
+     red for depth, top to bottom. */
+  --brand-grad-from: #FF8210;
+  --brand-grad-to: #9F0000;
+
   --page-bg-from: #FFFFFF;
   --page-bg-to: #62646C;
   --page-glow: rgba(240, 119, 39, 0.5);
@@ -58,6 +64,13 @@
 
   --heading-grad-from: #BEC1CF;
   --heading-grad-to: #D5D8EA;
+
+  /* dark-mode counterpart to --brand-grad-* above: the brand pink this
+     theme's accent/glow already use, fading to a deep plum instead of
+     red - keeps the same "hot colour fading to a deep shadow" feel
+     without it reading as a mistake against a dark background. */
+  --brand-grad-from: #F038B2;
+  --brand-grad-to: #4A0E42;
 
   --page-bg-from: #010103;
   --page-bg-to: #0E0E10;
@@ -124,6 +137,13 @@ body {
 
   .text-gray_gradient {
     @apply bg-gradient-to-r from-[var(--heading-grad-from)] from-60% via-[var(--heading-grad-to)] via-60% to-[var(--heading-grad-to)] to-100% bg-clip-text text-transparent;
+  }
+
+  /* The "Bulfighter" hero wordmark - top-to-bottom fill instead of the
+     left-to-right heading gradient above, matching the old logo image it
+     replaces. */
+  .text-brand-gradient {
+    @apply bg-gradient-to-r from-[var(--brand-grad-from)] to-[var(--brand-grad-to)] bg-clip-text text-transparent;
   }
 
   /* button component */
