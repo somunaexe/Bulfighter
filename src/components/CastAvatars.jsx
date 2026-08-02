@@ -45,7 +45,7 @@ const CastAvatars = ({ names }) => {
         <>
             <button
                 type="button"
-                onClick={() => setModalOpen(true)}
+                // onClick={() => setModalOpen(true)}
                 aria-label={`View cast: ${names.join(', ')}`}
                 className="flex-shrink-0 ml-auto"
             >
@@ -88,7 +88,7 @@ const CastAvatars = ({ names }) => {
                 </div>
             </button>
 
-            <CastModal isOpen={modalOpen} onClose={() => setModalOpen(false)} names={names} />
+            {/* <CastModal isOpen={modalOpen} onClose={() => setModalOpen(false)} names={names} /> */}
         </>
     )
 }
