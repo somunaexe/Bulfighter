@@ -191,7 +191,7 @@ const Contact = () => {
             <video width="600" autoPlay muted loop playsInline webkit-playsinline >
                 <source src="assets/website-comp.mp4" type="video/mp4"/>
             </video>
-            <h2 className="absolute w-full md:w-1/2 text-center text-5xl sm:text-6xl md:text-7xl font-black text-brand-gradient px-4">
+            <h2 className="absolute w-full md:w-1/2 text-center text-5xl sm:text-6xl md:text-7xl font-black text-brand-gradient px-4 py-2">
                 Bulfighter
             </h2>
             {/* <DVDLogo /> */}

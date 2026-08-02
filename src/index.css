@@ -143,7 +143,7 @@ body {
      left-to-right heading gradient above, matching the old logo image it
      replaces. */
   .text-brand-gradient {
-    @apply bg-gradient-to-b from-[var(--brand-grad-from)] to-[var(--brand-grad-to)] bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[var(--brand-grad-from)] to-[var(--brand-grad-to)] bg-clip-text text-transparent;
   }
 
   /* button component */
