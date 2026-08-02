@@ -129,7 +129,7 @@ const Clips = () => {
                                     {shortClips.map((clip) => (
                                         <ClipCard key={clip.id} clip={{ ...clip, title: collection.title }} />
                                     ))}
-                                    <CastAvatars names={collection.cast} />
+                                    {/* <CastAvatars names={collection.cast} /> */}
                                 </div>
                             </div>
                         )
