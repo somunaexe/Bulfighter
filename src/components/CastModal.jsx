@@ -89,7 +89,14 @@ const CastModal = ({ isOpen, onClose, names }) => {
     const isStoryView = view === 'story'
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        // items-end (instead of items-center) aligns the card to the BOTTOM of
+        // this flex container's cross axis (vertical, since flex-direction is
+        // the default "row"). justify-center still centers it horizontally -
+        // the two are independent axes. Net effect: any leftover vertical
+        // space collapses to the top, and the card's bottom edge sits flush
+        // against the viewport's bottom edge (inset-0 pins this div to the
+        // full screen, so "bottom of this container" IS "bottom of screen").
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
             <button
                 type="button"
                 aria-label="Close"
@@ -102,7 +109,7 @@ const CastModal = ({ isOpen, onClose, names }) => {
                     relative w-full h-full sm:h-auto overflow-hidden
                     transition-all duration-200
                     ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
-                    ${isStoryView ? 'bg-black-100' : 'surface-card sm:max-w-7xl sm:max-h-[80vh] overflow-y-auto c-space py-6 sm:py-8'}
+                    ${isStoryView ? 'bg-black-100' : 'surface-card sm:rounded-b-none sm:max-w-7xl sm:max-h-[80vh] overflow-y-auto c-space py-6 sm:py-8'}
                 `}
             >
                 {isStoryView ? (
