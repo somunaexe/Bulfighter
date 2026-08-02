@@ -6,3 +6,4 @@ export const INTERESTS_API_URL = 'https://9rbgl7kyu7.execute-api.eu-north-1.amaz
 export const CONSENTS_API_URL = 'https://9llxstbhji.execute-api.eu-north-1.amazonaws.com/dev'
 export const CONSENT_INVITE_API_URL = 'https://x12ex8za7c.execute-api.eu-north-1.amazonaws.com/dev'
 export const ADMIN_AUTH_API_URL = 'https://fheqb7045j.execute-api.eu-north-1.amazonaws.com/dev'
+export const CAST_NAMES_API_URL = 'https://xmlaj7xft3.execute-api.eu-north-1.amazonaws.com/dev'
