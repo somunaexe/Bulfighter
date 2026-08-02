@@ -176,10 +176,11 @@ const CastModal = ({ isOpen, onClose, names }) => {
                             </div>
                         </div>
 
-                        {/* Large screens: seamless magazine-style grid, no gap/border
-                            between tiles, name overlaid on each person's first photo */}
+                        {/* Large screens: magazine-style grid, each person's own photos
+                            flow with no gap/border between them, but a small gap between
+                            different people hints there's more to scroll/browse through */}
                         <div
-                            className="hidden sm:grid"
+                            className="hidden sm:grid gap-x-2"
                             style={{ gridTemplateColumns: `repeat(${names.length}, 1fr)` }}
                         >
                             {names.flatMap((name, colIndex) =>
