@@ -317,12 +317,23 @@ const Contact = () => {
                         />
                         <span className="text-white-600">
                             I have read the{' '}
-                            <a className='link-accent' href='https://docs.google.com/document/d/1iujC1jHTHEVaA7ThfKiUDzcZGGab2137IpTxAjiGhHE/edit?tab=t.0#heading=h.fxnb7f3ekm4h' target='_blank' rel="noreferrer">onboarding sheet</a>
+                            <a className='link-accent' href='https://docs.google.com/document/d/12anptoGvDSfnAqRaOdVLRwIO-s94Twcz/edit' target='_blank' rel="noreferrer">onboarding sheet</a>
                             {' '}and understand what to expect and how to apply properly. <span className='text-red-500'>*</span>
                         </span>
                     </label>
 
-                    <button className="field-btn hover:bg-[rgb(var(--theme-accent))] transition-colors" type="submit" disabled={loading || !hasReadOnboarding}>
+                    {/* disabled blocks clicks but does nothing to :hover - that's a
+                        pure mouse-position style, not gated by the disabled attribute
+                        at all - so hover:bg-... was still firing while disabled unless
+                        told not to. disabled:pointer-events-none stops hover (and any
+                        other pointer interaction) from matching at all while disabled;
+                        the opacity/cursor pair matches how disabled looks elsewhere on
+                        the site (see Pagination.jsx). */}
+                    <button
+                        className="field-btn hover:bg-[rgb(var(--theme-accent))] disabled:pointer-events-none disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        type="submit"
+                        disabled={loading || !hasReadOnboarding}
+                    >
                         {loading ? 'Sending...' : uploading ? 'Uploading files' : 'Show your interest'}
                         <img src="/assets/arrow-up.png" alt="arrow-up" className="field-btn_arrow"/>
                     </button>

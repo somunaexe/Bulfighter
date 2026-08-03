@@ -25,8 +25,9 @@ export default function AudioLoop() {
   }, []);
 
   return (
+    <p>Audio</p>
     // <div>
-        <audio ref={audioLoop} src='assets/audio/relax.mp3' loop />
+        // <audio ref={audioLoop} src='assets/audio/relax.mp3' loop />
     // </div>
   );
 }

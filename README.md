@@ -1,6 +1,6 @@
 # Bulfighter
 
-Live site: [rankandmatch.com](https://rankandmatch.com/)
+Live site: [bulfighter.com](https://bulfighter.com/)
 
 The official source code for **Bulfighter** — a React single-page application with an interactive 3D globe visualisation, animated UI, and a serverless contact/email pipeline.
 
