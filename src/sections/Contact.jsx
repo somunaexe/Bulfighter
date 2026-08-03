@@ -317,7 +317,7 @@ const Contact = () => {
                         />
                         <span className="text-white-600">
                             I have read the{' '}
-                            <a className='link-accent' href='https://docs.google.com/document/d/1iujC1jHTHEVaA7ThfKiUDzcZGGab2137IpTxAjiGhHE/edit?tab=t.0#heading=h.fxnb7f3ekm4h' target='_blank' rel="noreferrer">onboarding sheet</a>
+                            <a className='link-accent' href='https://docs.google.com/document/d/12anptoGvDSfnAqRaOdVLRwIO-s94Twcz/edit' target='_blank' rel="noreferrer">onboarding sheet</a>
                             {' '}and understand what to expect and how to apply properly. <span className='text-red-500'>*</span>
                         </span>
                     </label>
