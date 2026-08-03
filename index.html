@@ -8,7 +8,14 @@
     <script>
       (function () {
         var stored = localStorage.getItem('ram_theme');
-        document.documentElement.setAttribute('data-theme', stored === 'dark' ? 'dark' : 'light');
+        var theme = stored === 'dark' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        // Runs before React mounts, same as the data-theme line above, so the
+        // tab icon matches the theme from the very first paint instead of
+        // flashing the light-mode one first. useTheme.js keeps this in sync
+        // afterward whenever the user actually toggles the theme.
+        document.querySelector('link[rel="icon"]').href =
+          theme === 'dark' ? 'assets/bulfighter-logo1-dark.png' : 'assets/bulfighter-logo1.png';
       })();
     </script>
   </head>
