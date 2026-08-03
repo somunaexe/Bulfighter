@@ -4,6 +4,7 @@ import Footer from './Footer.jsx'
 import ClipCard from '../components/ClipCard.jsx'
 import CastAvatars from '../components/CastAvatars.jsx'
 import Pagination from '../components/Pagination.jsx'
+import ClipsSkeleton from '../components/ClipsSkeleton.jsx'
 import { navLinks } from '../constants/index.js'
 import { getTopics } from '../api/topics.js'
 import { parseYoutubeVideo } from '../utils/youtube.js'
@@ -125,9 +126,7 @@ const Clips = () => {
                     </p>
                 </div>
 
-                {loading && (
-                    <p className="text-white-600 text-center text-xl">Loading clips...</p>
-                )}
+                {loading && <ClipsSkeleton />}
 
                 {!loading && error && (
                     <div className="text-center">

@@ -88,6 +88,19 @@
   scroll-behavior: smooth;
 }
 
+/* Skeleton loading placeholders: a solid gray box (.skeleton, below) with a
+   diagonal-looking sweep of light passing across it on a loop. The sweep
+   itself is a transparent -> accent -> transparent gradient on a ::after
+   layer, sitting off to the left (translateX(-100%)) and animated to slide
+   all the way across (translateX(100%)) and repeat. Using --theme-accent
+   for its color means it's already theme-aware for free: orange in light
+   mode, pink in dark mode - the same accent used everywhere else. */
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 body {
   background:
     radial-gradient(ellipse 1200px 600px at 50% 0%, var(--page-glow), transparent 70%),
@@ -137,6 +150,22 @@ body {
 
   .text-gray_gradient {
     @apply bg-gradient-to-r from-[var(--heading-grad-from)] from-60% via-[var(--heading-grad-to)] via-60% to-[var(--heading-grad-to)] to-100% bg-clip-text text-transparent;
+  }
+
+  /* bg-black-500 is the same neutral gray used everywhere else on the site
+     for "blank placeholder" content (CastAvatars circles, CastModal photo
+     tiles) - reused here for consistency rather than a one-off gray. */
+  .skeleton {
+    @apply relative overflow-hidden bg-black-500;
+  }
+
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(90deg, transparent, rgb(var(--theme-accent) / 0.4), transparent);
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
   }
 
   /* The "Bulfighter" hero wordmark - top-to-bottom fill instead of the
