@@ -322,7 +322,18 @@ const Contact = () => {
                         </span>
                     </label>
 
-                    <button className="field-btn hover:bg-[rgb(var(--theme-accent))] transition-colors" type="submit" disabled={loading || !hasReadOnboarding}>
+                    {/* disabled blocks clicks but does nothing to :hover - that's a
+                        pure mouse-position style, not gated by the disabled attribute
+                        at all - so hover:bg-... was still firing while disabled unless
+                        told not to. disabled:pointer-events-none stops hover (and any
+                        other pointer interaction) from matching at all while disabled;
+                        the opacity/cursor pair matches how disabled looks elsewhere on
+                        the site (see Pagination.jsx). */}
+                    <button
+                        className="field-btn hover:bg-[rgb(var(--theme-accent))] disabled:pointer-events-none disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        type="submit"
+                        disabled={loading || !hasReadOnboarding}
+                    >
                         {loading ? 'Sending...' : uploading ? 'Uploading files' : 'Show your interest'}
                         <img src="/assets/arrow-up.png" alt="arrow-up" className="field-btn_arrow"/>
                     </button>
