@@ -105,10 +105,12 @@ const Clips = () => {
     }
 
     return (
-        <main className="max-w-7xl mx-auto">
+        <main className="max-w-7xl mx-auto min-h-screen flex flex-col">
             <Navbar navLinks={navLinks} />
 
-            <section className="c-space pt-24 pb-16">
+            {/* flex-1: grows to fill any leftover height so Footer lands at
+                the true bottom of the screen instead of floating above it */}
+            <section className="c-space pt-24 pb-16 flex-1">
                 <div className="text-center max-w-2xl mx-auto mb-8">
                     <p className="text-white-600 mt-4 text-lg">
                         Highlights from the videos we&apos;ve filmed. Catch the full episodes on{' '}
