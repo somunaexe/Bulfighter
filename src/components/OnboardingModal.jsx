@@ -107,12 +107,20 @@ const OnboardingModal = ({ isOpen, onClose }) => {
                     actually kick in instead of the card just growing taller
                     than the screen - see ConfirmModal.jsx for the same
                     reasoning written out in more detail. */}
-                <div className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-8">
-                    {/* Cancels the div's own p-6/sm:p-8 padding just for the
-                        image (negative margin equal to the padding, width
-                        compensated to match) so it sits flush against the
-                        card's edges/rounded top corners instead of getting
-                        boxed in by the same padding the text below uses.
+                <div className="flex-1 min-h-0 overflow-y-auto">
+                    {/* No padding on the scroll container itself, so this
+                        image - as its first, un-padded child - naturally
+                        spans the full card width and sits flush against the
+                        rounded top corners with no extra work needed.
+                        (Tried getting the same result by keeping padding on
+                        this div and cancelling it just for the image with a
+                        calc()-based negative-margin trick - w-[calc(100%+4rem)]
+                        - but Tailwind's arbitrary-value handling silently
+                        drops the required space in "calc(100% + 4rem)" from
+                        the generated CSS selector, so the rule never
+                        actually matched the element. Moving the padding onto
+                        a wrapper around just the text below, instead of
+                        fighting that, sidesteps the whole problem.)
                         w-full h-auto (no object-cover) keeps the photo's own
                         aspect ratio uncropped, since it's a group shot -
                         forcing it into a fixed-height banner would cut
@@ -120,9 +128,10 @@ const OnboardingModal = ({ isOpen, onClose }) => {
                     <img
                         src="/assets/onboarding-cover.jpg"
                         alt="Cast members seated at a table filming a Bulfighter episode"
-                        className="w-[calc(100%+3rem)] sm:w-[calc(100%+4rem)] -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 mb-4 h-auto block"
+                        className="w-full h-auto block"
                     />
 
+                    <div className="p-6 sm:p-8">
                     <h3 className="head-text text-2xl">Contributor Information Sheet</h3>
                     <p className="text-white-500 text-sm mt-1">Everything you need to know before we film</p>
 
@@ -192,6 +201,7 @@ const OnboardingModal = ({ isOpen, onClose }) => {
                             or clips unless there&apos;s a legal, safety, or serious privacy concern.
                         </p>
                     </Section>
+                    </div>
                 </div>
             </div>
         </div>,
