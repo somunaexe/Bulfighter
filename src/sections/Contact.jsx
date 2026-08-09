@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import DVDLogo from '../components/DVDLogo.jsx';
 // import base64Orders from '../components/FoodOrders.jsx';
 import ConfirmModal from '../components/ConfirmModal.jsx';
+import OnboardingModal from '../components/OnboardingModal.jsx';
 import { createInterest } from '../api/interests.js'
 
 const Contact = () => {
@@ -17,6 +18,7 @@ const Contact = () => {
     const [uploadedPerc, setUploadedPerc] = useState(0)
     const [dots, setDots] = useState(1);
     const [hasReadOnboarding, setHasReadOnboarding] = useState(false);
+    const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
 
     const [form, setForm] = useState({
         name: '',
@@ -317,10 +319,18 @@ const Contact = () => {
                         />
                         <span className="text-white-600">
                             I have read the{' '}
-                            <a className='link-accent' href='https://docs.google.com/document/d/12anptoGvDSfnAqRaOdVLRwIO-s94Twcz/edit' target='_blank' rel="noreferrer">onboarding sheet</a>
+                            <button
+                                type="button"
+                                onClick={() => setOnboardingModalOpen(true)}
+                                className="link-accent"
+                            >
+                                onboarding sheet
+                            </button>
                             {' '}and understand what to expect and how to apply properly. <span className='text-red-500'>*</span>
                         </span>
                     </label>
+
+                    <OnboardingModal isOpen={onboardingModalOpen} onClose={() => setOnboardingModalOpen(false)} />
 
                     {/* disabled blocks clicks but does nothing to :hover - that's a
                         pure mouse-position style, not gated by the disabled attribute
