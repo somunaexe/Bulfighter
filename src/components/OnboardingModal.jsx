@@ -86,14 +86,18 @@ const OnboardingModal = ({ isOpen, onClose }) => {
             >
                 {/* Sibling of the scrollable div below, not a child of it - a
                     close button INSIDE a scrolling container scrolls away
-                    with it (see the ConfirmModal.jsx fix for the same bug). */}
+                    with it (see the ConfirmModal.jsx fix for the same bug).
+                    Given a dark semi-transparent backdrop (rather than the
+                    plain icon CastModal/ConfirmModal use) since it needs to
+                    stay legible sitting over the cover photo below, not just
+                    a plain card background. */}
                 <button
                     type="button"
                     onClick={onClose}
                     aria-label="Close"
-                    className="absolute top-4 right-4 text-white-600 hover:text-white-800 transition-colors z-10"
+                    className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center text-white transition-colors"
                 >
-                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-2" strokeLinecap="round">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2" strokeLinecap="round">
                         <path d="M6 6l12 12M6 18L18 6" />
                     </svg>
                 </button>
@@ -104,6 +108,21 @@ const OnboardingModal = ({ isOpen, onClose }) => {
                     than the screen - see ConfirmModal.jsx for the same
                     reasoning written out in more detail. */}
                 <div className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-8">
+                    {/* Cancels the div's own p-6/sm:p-8 padding just for the
+                        image (negative margin equal to the padding, width
+                        compensated to match) so it sits flush against the
+                        card's edges/rounded top corners instead of getting
+                        boxed in by the same padding the text below uses.
+                        w-full h-auto (no object-cover) keeps the photo's own
+                        aspect ratio uncropped, since it's a group shot -
+                        forcing it into a fixed-height banner would cut
+                        people off at the edges. */}
+                    <img
+                        src="/assets/onboarding-cover.jpg"
+                        alt="Cast members seated at a table filming a Bulfighter episode"
+                        className="w-[calc(100%+3rem)] sm:w-[calc(100%+4rem)] -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 mb-4 h-auto block"
+                    />
+
                     <h3 className="head-text text-2xl">Contributor Information Sheet</h3>
                     <p className="text-white-500 text-sm mt-1">Everything you need to know before we film</p>
 
