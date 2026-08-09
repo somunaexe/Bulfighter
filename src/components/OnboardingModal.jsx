@@ -86,14 +86,18 @@ const OnboardingModal = ({ isOpen, onClose }) => {
             >
                 {/* Sibling of the scrollable div below, not a child of it - a
                     close button INSIDE a scrolling container scrolls away
-                    with it (see the ConfirmModal.jsx fix for the same bug). */}
+                    with it (see the ConfirmModal.jsx fix for the same bug).
+                    Given a dark semi-transparent backdrop (rather than the
+                    plain icon CastModal/ConfirmModal use) since it needs to
+                    stay legible sitting over the cover photo below, not just
+                    a plain card background. */}
                 <button
                     type="button"
                     onClick={onClose}
                     aria-label="Close"
-                    className="absolute top-4 right-4 text-white-600 hover:text-white-800 transition-colors z-10"
+                    className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center text-white transition-colors"
                 >
-                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-2" strokeLinecap="round">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-current stroke-2" strokeLinecap="round">
                         <path d="M6 6l12 12M6 18L18 6" />
                     </svg>
                 </button>
@@ -103,7 +107,31 @@ const OnboardingModal = ({ isOpen, onClose }) => {
                     actually kick in instead of the card just growing taller
                     than the screen - see ConfirmModal.jsx for the same
                     reasoning written out in more detail. */}
-                <div className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-8">
+                <div className="flex-1 min-h-0 overflow-y-auto">
+                    {/* No padding on the scroll container itself, so this
+                        image - as its first, un-padded child - naturally
+                        spans the full card width and sits flush against the
+                        rounded top corners with no extra work needed.
+                        (Tried getting the same result by keeping padding on
+                        this div and cancelling it just for the image with a
+                        calc()-based negative-margin trick - w-[calc(100%+4rem)]
+                        - but Tailwind's arbitrary-value handling silently
+                        drops the required space in "calc(100% + 4rem)" from
+                        the generated CSS selector, so the rule never
+                        actually matched the element. Moving the padding onto
+                        a wrapper around just the text below, instead of
+                        fighting that, sidesteps the whole problem.)
+                        w-full h-auto (no object-cover) keeps the photo's own
+                        aspect ratio uncropped, since it's a group shot -
+                        forcing it into a fixed-height banner would cut
+                        people off at the edges. */}
+                    <img
+                        src="/assets/onboarding-cover.jpg"
+                        alt="Cast members seated at a table filming a Bulfighter episode"
+                        className="w-full h-auto block"
+                    />
+
+                    <div className="p-6 sm:p-8">
                     <h3 className="head-text text-2xl">Contributor Information Sheet</h3>
                     <p className="text-white-500 text-sm mt-1">Everything you need to know before we film</p>
 
@@ -173,6 +201,7 @@ const OnboardingModal = ({ isOpen, onClose }) => {
                             or clips unless there&apos;s a legal, safety, or serious privacy concern.
                         </p>
                     </Section>
+                    </div>
                 </div>
             </div>
         </div>,
