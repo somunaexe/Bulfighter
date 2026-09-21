@@ -7,3 +7,9 @@ export const CONSENTS_API_URL = 'https://9llxstbhji.execute-api.eu-north-1.amazo
 export const CONSENT_INVITE_API_URL = 'https://x12ex8za7c.execute-api.eu-north-1.amazonaws.com/dev'
 export const ADMIN_AUTH_API_URL = 'https://fheqb7045j.execute-api.eu-north-1.amazonaws.com/dev'
 export const CAST_NAMES_API_URL = 'https://xmlaj7xft3.execute-api.eu-north-1.amazonaws.com/dev'
+
+// TODO: replace once src/backend/equipmentRentals.js is deployed and
+// fronted by API Gateway (see that file's header comment for the steps).
+// Left as an obvious placeholder rather than a real-looking URL so it's
+// impossible to miss if this ships before the real one is in.
+export const EQUIPMENT_RENTAL_API_URL = 'https://REPLACE-ME.execute-api.eu-north-1.amazonaws.com/dev'

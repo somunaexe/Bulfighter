@@ -5,6 +5,7 @@ import { adminLinks } from '../constants/index.js'
 import Interests from './Interests.jsx'
 import Consents from './Consents.jsx'
 import Topics from './Topics.jsx'
+import Rentals from './Rentals.jsx'
 import { loginAdmin } from '../api/adminAuth.js'
 
 const SESSION_KEY = 'ram_admin_token'
@@ -78,6 +79,7 @@ const Admin = () => {
                     <Route path="interests" element={<Interests />} />
                     <Route path="consents" element={<Consents />} />
                     <Route path="topics" element={<Topics />} />
+                    <Route path="rentals" element={<Rentals />} />
                 </Routes>
             </div>
         </main>
