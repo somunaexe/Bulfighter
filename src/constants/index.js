@@ -9,6 +9,11 @@ export const navLinks = [
     name: 'Clips',
     href: '/clips',
   },
+  {
+    id: 3,
+    name: 'Rent Equipment',
+    href: '/rentals',
+  },
   // {
   //   id: 3,
   //   name: 'Games',
@@ -31,6 +36,11 @@ export const adminLinks = [
     id: 3,
     name: 'Topics',
     href: '/admin/topics',
+  },
+  {
+    id: 4,
+    name: 'Rentals',
+    href: '/admin/rentals',
   },
 ];
 
