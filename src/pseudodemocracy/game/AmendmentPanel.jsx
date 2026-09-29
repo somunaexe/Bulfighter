@@ -11,14 +11,14 @@ const ProposeForm = ({ roomCode, game, window, isLeader }) => {
     const [busy, setBusy] = useState(false)
 
     const chapter = game.constitution[chapterIndex]
-    const [, text] = chapter.articles[articleIndex]
+    const { text } = chapter.articles[articleIndex]
     const segments = parseHighlights(text)
     const [replacements, setReplacements] = useState(segments.filter((s) => s.highlighted).map((s) => s.text))
 
     const changeArticle = (cIndex, aIndex) => {
         setChapterIndex(cIndex)
         setArticleIndex(aIndex)
-        const nextSegments = parseHighlights(game.constitution[cIndex].articles[aIndex][1])
+        const nextSegments = parseHighlights(game.constitution[cIndex].articles[aIndex].text)
         setReplacements(nextSegments.filter((s) => s.highlighted).map((s) => s.text))
         setError('')
     }
@@ -51,9 +51,9 @@ const ProposeForm = ({ roomCode, game, window, isLeader }) => {
                 className="w-full mb-4 px-3 py-2 rounded-md bg-transparent border border-black-300"
             >
                 {game.constitution.map((ch, cIndex) =>
-                    ch.articles.map(([n], aIndex) => (
+                    ch.articles.map((article, aIndex) => (
                         <option key={`${cIndex}-${aIndex}`} value={`${cIndex}-${aIndex}`}>
-                            {n}
+                            {article.name}
                         </option>
                     ))
                 )}
