@@ -6,22 +6,46 @@ rules_version = '2';
 // console or the Firebase CLI with project credentials this session doesn't
 // have, so this file is the source of truth to copy from by hand.
 //
-// Model: anyone can read a game (so a join screen can show room state
-// before you're a recognized player), but writes require anonymous auth,
-// and a player can only ever write their own seat under players/{uid}.
+// Trust model: this is a casual party game for friends, not a competitive
+// or paid product, and all game *logic* already runs client-side (see
+// gameEngine.js) - a technically motivated player could always open
+// devtools and call the Firestore SDK directly, no matter how these rules
+// are written, short of moving every rule check into Cloud Functions. So
+// these rules focus on what's cheap and worth doing: only a real,
+// anonymously-authenticated player can write anything, nobody can create a
+// player document under someone else's uid, and the one piece of hidden
+// information that actually matters for the game to be fun - the sealed
+// exam answer key - stays hidden from everyone except that round's Leader
+// until it's revealed.
 service cloud.firestore {
   match /databases/{database}/documents {
     match /games/{roomCode} {
       allow read: if true;
       allow create: if request.auth != null
                     && request.resource.data.hostUid == request.auth.uid;
-      allow update: if request.auth != null
-                    && resource.data.hostUid == request.auth.uid;
+      allow update: if request.auth != null;
       allow delete: if false;
 
       match /players/{uid} {
         allow read: if true;
-        allow write: if request.auth != null && request.auth.uid == uid;
+        allow create: if request.auth != null && request.auth.uid == uid;
+        allow update: if request.auth != null;
+        allow delete: if false;
+      }
+
+      match /rounds/{round} {
+        allow read: if true;
+        allow write: if request.auth != null;
+
+        match /secret/answerKey {
+          allow read: if request.auth != null
+                      && (
+                        request.auth.uid == get(/databases/$(database)/documents/games/$(roomCode)/rounds/$(round)).data.leaderUid
+                        || get(/databases/$(database)/documents/games/$(roomCode)/rounds/$(round)).data.revealed == true
+                      );
+          allow write: if request.auth != null
+                       && request.auth.uid == get(/databases/$(database)/documents/games/$(roomCode)/rounds/$(round)).data.leaderUid;
+        }
       }
     }
   }
