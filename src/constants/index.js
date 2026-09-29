@@ -14,6 +14,11 @@ export const navLinks = [
     name: 'Rent Equipment',
     href: '/rentals',
   },
+  {
+    id: 4,
+    name: 'Pseudodemocracy',
+    href: '/pseudodemocracy',
+  },
   // {
   //   id: 3,
   //   name: 'Games',
