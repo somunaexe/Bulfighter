@@ -4,6 +4,7 @@ import { navLinks } from '../constants/index.js'
 import { V, fmt } from '../pseudodemocracy/psdData.js'
 import { constitutionChapters } from '../pseudodemocracy/psdData.js'
 import { parseHighlights } from '../pseudodemocracy/parseHighlights.js'
+import Lobby from '../pseudodemocracy/Lobby.jsx'
 
 // Renders an article's text with its __word__ markers turned into styled
 // spans instead of literal underscores - every number/word inside still
@@ -48,15 +49,10 @@ const Pseudodemocracy = () => {
                     </a>
                 </div>
 
-                {/* A coming-soon marker rather than a broken/half-working game -
-                    this page's job for now is to let people read the rules and
-                    get a feel for it, per the site owner's own goal for this
-                    page, while the full online multiplayer version (which needs
-                    its own realtime backend) is built out separately. */}
-                <div className="surface-card border-2 border-dashed border-[rgb(var(--theme-accent))] p-6 sm:p-8 mb-10 text-center">
-                    <p className="font-semibold text-white-800">Play online is coming soon</p>
-                    <p className="text-white-600 mt-1">For now, read the rules below or download the full handbook to get a feel for the game.</p>
-                </div>
+                {/* Phase 1: lobby only (create/join a room, see players join
+                    live via Firebase). The round-by-round engine (exams,
+                    votes, coups, etc.) is a separate follow-up phase. */}
+                <Lobby />
 
                 {/* Quick-start summary - same idea as the "Quick-Start Summary"
                     page in the printed handbook (build_rulebook.js's
