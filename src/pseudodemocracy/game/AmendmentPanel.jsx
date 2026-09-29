@@ -118,13 +118,20 @@ const PendingRuling = ({ roomCode, game, window }) => {
     )
 }
 
-const AmendmentVote = ({ roomCode, window }) => {
+const AmendmentVote = ({ roomCode, game, window }) => {
     const [forVotes, setForVotes] = useState(0)
     const [againstVotes, setAgainstVotes] = useState(0)
+    const isDictator = game.leaderType === 'Dictator'
     return (
         <div className="surface-card p-6 mb-6">
-            <p className="font-semibold text-white-800 mb-1">President&apos;s amendment vote</p>
-            <p className="text-white-600 text-sm mb-4">Everyone except the Leader votes, no discussion. Enter the count.</p>
+            <p className="font-semibold text-white-800 mb-1">Amendment vote</p>
+            <p className="text-white-600 text-sm mb-4">
+                Everyone except the Leader votes, no discussion - it always moves their popularity.{' '}
+                {isDictator
+                    ? 'As Dictator, the wording stands either way.'
+                    : 'As President, the wording only stands if more voted for than against.'}{' '}
+                Enter the count.
+            </p>
             <div className="flex gap-4 mb-4">
                 <label className="text-white-600">
                     For: <input type="number" min="0" value={forVotes} onChange={(e) => setForVotes(Number(e.target.value))} className="w-16 ml-2 px-2 py-1 rounded border border-black-300 bg-transparent" />
@@ -147,7 +154,7 @@ const AmendmentPanel = ({ roomCode, game, me, window }) => {
     const isLeader = me.uid === game.leaderUid
 
     if (game.pendingAmendment?.awaitingVote) {
-        return <AmendmentVote roomCode={roomCode} window={window} />
+        return <AmendmentVote roomCode={roomCode} game={game} window={window} />
     }
     if (game.pendingAmendment) {
         return <PendingRuling roomCode={roomCode} game={game} window={window} />
