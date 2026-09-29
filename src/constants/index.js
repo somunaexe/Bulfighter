@@ -9,6 +9,11 @@ export const navLinks = [
     name: 'Clips',
     href: '/clips',
   },
+  {
+    id: 3,
+    name: 'Pseudodemocracy',
+    href: '/pseudodemocracy',
+  },
   // {
   //   id: 3,
   //   name: 'Games',

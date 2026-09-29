@@ -6,6 +6,7 @@ import Admin from './admin/Admin.jsx'
 import { BrowserRouter, Routes, Route } from 'react-router'
 import ConsentsForm from './sections/ConsentForm.jsx'
 import Clips from './sections/Clips.jsx'
+import Pseudodemocracy from './sections/Pseudodemocracy.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -18,6 +19,8 @@ createRoot(document.getElementById('root')).render(
         <Route path="*" element={<App />} />
 
         <Route path="/clips" element={<Clips />} />
+
+        <Route path="/pseudodemocracy" element={<Pseudodemocracy />} />
 
         {/* Page for casted members */}
         <Route path="consent" element={<ConsentsForm />} />
