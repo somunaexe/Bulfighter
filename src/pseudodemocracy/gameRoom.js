@@ -1,18 +1,16 @@
 // Lobby data access: creating/joining a room and watching who's in it live.
-// This is Phase 1 (lobby only) - the actual round loop (exam/vote/role
-// draw/etc.) is a separate follow-up once this is working end to end.
+// This only covers the lobby (status 'lobby') - starting the game and
+// everything that happens once it's active lives in gameEngine.js, which
+// documents the round-loop fields added to these same documents.
 //
 // Firestore layout:
 //   games/{roomCode}                - { hostUid, status, createdAt }
 //   games/{roomCode}/players/{uid}  - { name, joinedAt, isHost }
-// status is 'lobby' | 'active' | 'ended'. The round-loop fields (whose
-// term it is, treasury, votes, etc.) get added to the games/{roomCode}
-// doc once Phase 2 starts.
+// status is 'lobby' | 'active' | 'ended'.
 import {
     doc,
     getDoc,
     setDoc,
-    updateDoc,
     collection,
     onSnapshot,
     orderBy,
@@ -92,8 +90,4 @@ export function subscribeToPlayers(roomCode, callback) {
     return onSnapshot(playersQuery, (snap) => {
         callback(snap.docs.map((d) => ({ uid: d.id, ...d.data() })))
     })
-}
-
-export async function startGame(roomCode) {
-    await updateDoc(doc(db, 'games', roomCode), { status: 'active' })
 }

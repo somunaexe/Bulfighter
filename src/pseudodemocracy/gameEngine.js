@@ -1,0 +1,380 @@
+// Firestore data access for an in-progress game (Phase 2a: the round
+// skeleton - exam, vote, role draw, amendments, levy/tax, turns, coups,
+// term scoring). Lobby-only concerns (create/join a room) live in
+// gameRoom.js; this file only runs once a room's status is 'active'.
+//
+// Data layout, in addition to what gameRoom.js already documents:
+//   games/{roomCode}
+//     round, phase, leaderUid, leaderType, turnOrder, currentTurnIndex,
+//     turnsCompletedUids, amendmentsUsedThisTerm, levy, rules,
+//     constitution, treasury, amendmentLog
+//   games/{roomCode}/players/{uid}
+//     + psd, popularity, eliminated, examPassedThisRound, coupCards
+//   games/{roomCode}/rounds/{round}
+//     leaderUid, questions, answers, revealed, votes
+//   games/{roomCode}/rounds/{round}/secret/answerKey
+//     key - readable only by that round's leaderUid until revealed
+//
+// `rules` mirrors the handful of amendable numbers this phase's gameplay
+// actually reads (pass mark, tax rate, malpractice fine) so an amendment to
+// those articles has a real effect without re-parsing article text on every
+// read. `constitution` is a full deep copy of articles.js so amendments have
+// somewhere to write new wording - the two are kept in sync by
+// applyAmendmentEffect() below, in one place, so they can't drift apart.
+import {
+    doc,
+    getDoc,
+    updateDoc,
+    setDoc,
+    onSnapshot,
+    runTransaction,
+    deleteField,
+} from 'firebase/firestore'
+import { db } from './firebase.js'
+import { V, constitutionChapters } from './psdData.js'
+import { canAttemptCoup } from './engine/coup.js'
+import { isCancelled, applyAmendmentVotes } from './engine/popularity.js'
+import { didPass, scoreAnswers } from './engine/exam.js'
+import { shiftLevyBand, clampLevyToBand } from './engine/levy.js'
+import { tiebreakScore } from './engine/tiebreak.js'
+import { applyAmendment } from './engine/amendment.js'
+
+const gameRef = (roomCode) => doc(db, 'games', roomCode)
+const playerRef = (roomCode, uid) => doc(db, 'games', roomCode, 'players', uid)
+const roundRef = (roomCode, round) => doc(db, 'games', roomCode, 'rounds', String(round))
+const answerKeyRef = (roomCode, round) => doc(db, 'games', roomCode, 'rounds', String(round), 'secret', 'answerKey')
+
+// ---------------------------------------------------------------
+// Starting a game (called once, when the host moves the room out of
+// the lobby). Every player gets the same starting PSD/popularity; round 1
+// has no exam, so it starts straight at the leader vote.
+// ---------------------------------------------------------------
+export async function initializeActiveGame(roomCode, playerUids) {
+    await runTransaction(db, async (tx) => {
+        tx.update(gameRef(roomCode), {
+            status: 'active',
+            round: 1,
+            phase: 'vote',
+            leaderUid: null,
+            leaderType: null,
+            turnOrder: playerUids,
+            currentTurnIndex: 0,
+            turnsCompletedUids: [],
+            amendmentsUsedThisTerm: { inauguration: false, midterm: false, farewell: false },
+            levy: { amount: V.levy.start, bandLow: V.levy.bandLow, bandHigh: V.levy.bandHigh },
+            rules: { passMark: V.passMark, taxRate: V.taxRate, malpracticeFine: V.malpracticeFine },
+            constitution: JSON.parse(JSON.stringify(constitutionChapters)),
+            treasury: V.treasuryFor(playerUids.length),
+            amendmentLog: [],
+        })
+        for (const uid of playerUids) {
+            tx.update(playerRef(roomCode, uid), {
+                psd: V.startMoney,
+                popularity: 0,
+                eliminated: false,
+                examPassedThisRound: true,
+                coupCards: 0,
+                roundsAsLeader: 0,
+            })
+        }
+        tx.set(roundRef(roomCode, 1), { leaderUid: null, questions: [], answers: {}, revealed: true, votes: {} })
+    })
+}
+
+export function subscribeToRound(roomCode, round, callback) {
+    return onSnapshot(roundRef(roomCode, round), (snap) => {
+        callback(snap.exists() ? { id: snap.id, ...snap.data() } : null)
+    })
+}
+
+// ---------------------------------------------------------------
+// Exam
+// ---------------------------------------------------------------
+export async function writeExam(roomCode, round, leaderUid, questions, answerKey) {
+    await setDoc(roundRef(roomCode, round), {
+        leaderUid,
+        questions: questions.map((q) => ({ text: q.text, options: q.options })),
+        answers: {},
+        revealed: false,
+        votes: {},
+    })
+    await setDoc(answerKeyRef(roomCode, round), { key: answerKey })
+}
+
+export async function submitExamAnswers(roomCode, round, uid, answers) {
+    await updateDoc(roundRef(roomCode, round), { [`answers.${uid}`]: answers })
+}
+
+export async function revealExam(roomCode, roundNum, players) {
+    const keySnap = await getDoc(answerKeyRef(roomCode, roundNum))
+    const key = keySnap.data().key
+    const roundSnap = await getDoc(roundRef(roomCode, roundNum))
+    const { answers, questions } = roundSnap.data()
+
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        for (const p of players) {
+            const correct = scoreAnswers(answers[p.uid] || [], key)
+            const passed = didPass(correct, questions.length, game.rules.passMark)
+            tx.update(playerRef(roomCode, p.uid), { examPassedThisRound: passed })
+        }
+        tx.update(roundRef(roomCode, roundNum), { revealed: true, key })
+        tx.update(gameRef(roomCode), { phase: 'vote' })
+    })
+}
+
+// ---------------------------------------------------------------
+// Leader vote
+// ---------------------------------------------------------------
+export async function castLeaderVote(roomCode, round, voterUid, candidateUid) {
+    await updateDoc(roundRef(roomCode, round), { [`votes.${voterUid}`]: candidateUid })
+}
+
+export async function tallyLeaderVoteAndAdvance(roomCode, round) {
+    const roundSnap = await getDoc(roundRef(roomCode, round))
+    const votes = roundSnap.data().votes || {}
+    const tally = {}
+    for (const candidate of Object.values(votes)) tally[candidate] = (tally[candidate] || 0) + 1
+    let winner = null
+    let winnerVotes = -1
+    for (const [uid, count] of Object.entries(tally)) {
+        if (count > winnerVotes) {
+            winner = uid
+            winnerVotes = count
+        }
+    }
+    await updateDoc(gameRef(roomCode), { leaderUid: winner, phase: 'roleDraw' })
+    return winner
+}
+
+// ---------------------------------------------------------------
+// Role draw - Dictator / President / Commander, equal odds
+// ---------------------------------------------------------------
+const LEADER_TYPES = ['Dictator', 'President', 'Commander']
+
+export async function drawLeaderRole(roomCode) {
+    const roleType = LEADER_TYPES[Math.floor(Math.random() * LEADER_TYPES.length)]
+    await updateDoc(gameRef(roomCode), { leaderType: roleType, phase: 'inauguration' })
+    return roleType
+}
+
+// ---------------------------------------------------------------
+// Amendments (Inauguration / Mid-term / Farewell) - shared logic.
+// window is one of 'inauguration' | 'midterm' | 'farewell'.
+// ---------------------------------------------------------------
+export async function proposeAmendment(roomCode, chapterIndex, articleIndex, replacements) {
+    const game = (await getDoc(gameRef(roomCode))).data()
+    if (game.leaderType === 'Commander') {
+        return { valid: false, reason: 'Commanders cannot amend the Constitution' }
+    }
+    const article = game.constitution[chapterIndex].articles[articleIndex]
+    const [name, text] = article
+    const result = applyAmendment(text, replacements)
+    if (!result.valid) return result
+
+    await updateDoc(gameRef(roomCode), {
+        pendingAmendment: { chapterIndex, articleIndex, name, oldText: text, newText: result.text },
+    })
+    return result
+}
+
+// The table's "is this still correct English" ruling - a human judgement
+// call per the rulebook, not something this code decides. `passesGrammar`
+// is whatever the table agreed on.
+export async function ruleAmendment(roomCode, window, passesGrammar) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const pending = game.pendingAmendment
+        if (!pending) return
+
+        const nextConstitution = JSON.parse(JSON.stringify(game.constitution))
+        const finalOutcome = passesGrammar && game.leaderType !== 'Commander' ? 'pending-vote' : 'reverted'
+
+        if (finalOutcome === 'reverted') {
+            const leader = (await tx.get(playerRef(roomCode, game.leaderUid))).data()
+            tx.update(playerRef(roomCode, game.leaderUid), { psd: leader.psd - V.amendPenalty })
+            tx.update(gameRef(roomCode), {
+                treasury: game.treasury + V.amendPenalty,
+                pendingAmendment: deleteField(),
+                [`amendmentsUsedThisTerm.${window}`]: true,
+                amendmentLog: [
+                    ...game.amendmentLog,
+                    { round: game.round, article: pending.name, leaderUid: game.leaderUid, outcome: 'reverted' },
+                ],
+            })
+        } else {
+            // Dictator: stands immediately, no vote. President: needs the
+            // amendment vote below. Commander can never reach here (UI
+            // hides amending for Commanders).
+            if (game.leaderType === 'Dictator') {
+                nextConstitution[pending.chapterIndex].articles[pending.articleIndex][1] = pending.newText
+                tx.update(gameRef(roomCode), {
+                    constitution: nextConstitution,
+                    pendingAmendment: deleteField(),
+                    [`amendmentsUsedThisTerm.${window}`]: true,
+                    amendmentLog: [
+                        ...game.amendmentLog,
+                        { round: game.round, article: pending.name, leaderUid: game.leaderUid, outcome: 'stands (Dictator)' },
+                    ],
+                })
+            } else {
+                tx.update(gameRef(roomCode), { pendingAmendment: { ...pending, awaitingVote: true } })
+            }
+        }
+    })
+}
+
+// President-only: majority-vote outcome for a pending amendment.
+export async function castAmendmentVoteOutcome(roomCode, window, votesFor, votesAgainst) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const pending = game.pendingAmendment
+        if (!pending) return
+        const leader = (await tx.get(playerRef(roomCode, game.leaderUid))).data()
+        const newPopularity = applyAmendmentVotes(leader.popularity, votesFor, votesAgainst)
+        tx.update(playerRef(roomCode, game.leaderUid), { popularity: newPopularity })
+
+        const stands = votesFor > votesAgainst
+        const nextConstitution = JSON.parse(JSON.stringify(game.constitution))
+        if (stands) {
+            nextConstitution[pending.chapterIndex].articles[pending.articleIndex][1] = pending.newText
+        }
+        tx.update(gameRef(roomCode), {
+            constitution: nextConstitution,
+            pendingAmendment: deleteField(),
+            [`amendmentsUsedThisTerm.${window}`]: true,
+            amendmentLog: [
+                ...game.amendmentLog,
+                { round: game.round, article: pending.name, leaderUid: game.leaderUid, outcome: stands ? 'stands (majority)' : 'rejected (majority)' },
+            ],
+        })
+    })
+}
+
+export async function skipAmendmentWindow(roomCode, window) {
+    await updateDoc(gameRef(roomCode), { [`amendmentsUsedThisTerm.${window}`]: true })
+}
+
+export async function advancePhaseAfterInauguration(roomCode) {
+    await updateDoc(gameRef(roomCode), { phase: 'levy' })
+}
+
+// ---------------------------------------------------------------
+// Levy - the Leader sets it within the current band, then everyone pays
+// levy + tax on their declared income for the term (income is entered
+// manually for now - Phase 2b's card deck will make this automatic).
+// ---------------------------------------------------------------
+export async function setLevy(roomCode, amount) {
+    const game = (await getDoc(gameRef(roomCode))).data()
+    const clamped = clampLevyToBand(amount, { low: game.levy.bandLow, high: game.levy.bandHigh })
+    await updateDoc(gameRef(roomCode), { 'levy.amount': clamped, phase: 'turns' })
+    return clamped
+}
+
+export async function payLevyAndTax(roomCode, uid, incomeThisTurn) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const player = (await tx.get(playerRef(roomCode, uid))).data()
+        const tax = Math.round((incomeThisTurn * game.rules.taxRate) / 100)
+        const total = game.levy.amount + tax
+        tx.update(playerRef(roomCode, uid), { psd: player.psd + incomeThisTurn - total })
+        tx.update(gameRef(roomCode), { treasury: game.treasury + total })
+    })
+}
+
+export async function completeTurn(roomCode, uid) {
+    const game = (await getDoc(gameRef(roomCode))).data()
+    const turnsCompletedUids = [...game.turnsCompletedUids, uid]
+    const nextIndex = game.currentTurnIndex + 1
+    await updateDoc(gameRef(roomCode), { turnsCompletedUids, currentTurnIndex: nextIndex })
+}
+
+export async function advanceToFarewell(roomCode) {
+    await updateDoc(gameRef(roomCode), { phase: 'farewell' })
+}
+
+// ---------------------------------------------------------------
+// Coups - LOCKED. Eligibility is decided purely by engine/coup.js, using
+// game_data.js's coupCost/coupGap - never anything from `rules` or
+// `constitution`, which hold the amendable state.
+// ---------------------------------------------------------------
+export async function attemptCoup(roomCode, challengerUid) {
+    return runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const challenger = (await tx.get(playerRef(roomCode, challengerUid))).data()
+        const leader = (await tx.get(playerRef(roomCode, game.leaderUid))).data()
+
+        const eligible = canAttemptCoup({
+            challengerPsd: challenger.psd,
+            challengerCoupCards: challenger.coupCards,
+            challengerPopularity: challenger.popularity,
+            leaderPopularity: leader.popularity,
+        })
+        if (!eligible) return { success: false }
+
+        // Couped Leader scores half a round instead of a full one.
+        tx.update(playerRef(roomCode, game.leaderUid), { roundsAsLeader: (leader.roundsAsLeader || 0) + 0.5 })
+        tx.update(playerRef(roomCode, challengerUid), {
+            psd: challenger.psd - V.coupCost,
+            coupCards: challenger.coupCards - 1,
+        })
+        tx.update(gameRef(roomCode), {
+            treasury: game.treasury + V.coupCost,
+            leaderUid: challengerUid,
+            leaderType: null,
+            phase: 'roleDraw',
+            round: game.round + 1,
+            currentTurnIndex: 0,
+            turnsCompletedUids: [],
+            amendmentsUsedThisTerm: { inauguration: false, midterm: false, farewell: false },
+            pendingAmendment: deleteField(),
+        })
+        return { success: true }
+    })
+}
+
+// ---------------------------------------------------------------
+// Term end - award the round to the sitting Leader, shift the levy band
+// off their popularity, then start the next round's exam.
+// ---------------------------------------------------------------
+export async function endTerm(roomCode) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const leader = (await tx.get(playerRef(roomCode, game.leaderUid))).data()
+
+        tx.update(playerRef(roomCode, game.leaderUid), { roundsAsLeader: (leader.roundsAsLeader || 0) + 1 })
+
+        const nextBand = shiftLevyBand(
+            { low: game.levy.bandLow, high: game.levy.bandHigh },
+            leader.popularity,
+            { trigger: V.levy.trigger, shift: V.levy.shift, floor: V.levy.floor }
+        )
+        const nextAmount = clampLevyToBand(game.levy.amount, { low: nextBand.low, high: nextBand.high })
+
+        tx.update(gameRef(roomCode), {
+            round: game.round + 1,
+            phase: 'exam',
+            currentTurnIndex: 0,
+            turnsCompletedUids: [],
+            amendmentsUsedThisTerm: { inauguration: false, midterm: false, farewell: false },
+            levy: { amount: nextAmount, bandLow: nextBand.low, bandHigh: nextBand.high },
+        })
+        tx.set(roundRef(roomCode, game.round + 1), {
+            leaderUid: game.leaderUid,
+            questions: [],
+            answers: {},
+            revealed: false,
+            votes: {},
+        })
+    })
+}
+
+export function leaderboard(players) {
+    return [...players]
+        .map((p) => ({ ...p, tiebreak: tiebreakScore(p.popularity, p.psd) }))
+        .sort((a, b) => (b.roundsAsLeader || 0) - (a.roundsAsLeader || 0) || b.tiebreak - a.tiebreak)
+}
+
+export { isCancelled }
+export const midTermThreshold = (playerCount) => V.midTermAfter(playerCount)
+export { LEADER_TYPES }

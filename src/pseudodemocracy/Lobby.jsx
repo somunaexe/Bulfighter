@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { createRoom, joinRoom, subscribeToRoom, subscribeToPlayers, startGame } from './gameRoom.js'
+import { createRoom, joinRoom, subscribeToRoom, subscribeToPlayers } from './gameRoom.js'
+import { initializeActiveGame } from './gameEngine.js'
 import { auth } from './firebase.js'
+import GameBoard from './GameBoard.jsx'
 
 const Lobby = () => {
     const [name, setName] = useState('')
@@ -53,7 +55,7 @@ const Lobby = () => {
     const handleStart = async () => {
         setBusy(true)
         try {
-            await startGame(roomCode)
+            await initializeActiveGame(roomCode, players.map((p) => p.uid))
         } catch (err) {
             setError(err.message)
         } finally {
@@ -65,15 +67,7 @@ const Lobby = () => {
         const isHost = room.hostUid === auth.currentUser?.uid
 
         if (room.status === 'active') {
-            return (
-                <div className="surface-card p-6 sm:p-8 mb-10 text-center">
-                    <p className="font-semibold text-white-800">The game has started</p>
-                    <p className="text-white-600 mt-1">
-                        The round-by-round engine (exams, votes, coups...) is being built next - this room is
-                        live and connected, it just doesn&apos;t play a full round yet.
-                    </p>
-                </div>
-            )
+            return <GameBoard roomCode={roomCode} room={room} players={players} />
         }
 
         return (
