@@ -114,8 +114,11 @@ export async function revealExam(roomCode, roundNum, players) {
     await runTransaction(db, async (tx) => {
         const game = (await tx.get(gameRef(roomCode))).data()
         for (const p of players) {
-            const correct = scoreAnswers(answers[p.uid] || [], key)
-            const passed = didPass(correct, questions.length, game.rules.passMark)
+            // The Leader wrote the questions and the sealed key, so they
+            // never submit answers of their own - treat them as passing
+            // automatically rather than scoring an empty submission as 0%.
+            const passed =
+                p.uid === game.leaderUid ? true : didPass(scoreAnswers(answers[p.uid] || [], key), questions.length, game.rules.passMark)
             tx.update(playerRef(roomCode, p.uid), { examPassedThisRound: passed })
         }
         tx.update(roundRef(roomCode, roundNum), { revealed: true, key })
@@ -180,17 +183,17 @@ export async function proposeAmendment(roomCode, chapterIndex, articleIndex, rep
 
 // The table's "is this still correct English" ruling - a human judgement
 // call per the rulebook, not something this code decides. `passesGrammar`
-// is whatever the table agreed on.
+// is whatever the table agreed on. If it passes, the amendment always goes
+// to a vote next (both Dictators and Presidents) - the vote's +/-1
+// popularity per vote happens either way; only whether the new wording
+// actually takes effect depends on leader type (see castAmendmentVoteOutcome).
 export async function ruleAmendment(roomCode, window, passesGrammar) {
     await runTransaction(db, async (tx) => {
         const game = (await tx.get(gameRef(roomCode))).data()
         const pending = game.pendingAmendment
         if (!pending) return
 
-        const nextConstitution = JSON.parse(JSON.stringify(game.constitution))
-        const finalOutcome = passesGrammar && game.leaderType !== 'Commander' ? 'pending-vote' : 'reverted'
-
-        if (finalOutcome === 'reverted') {
+        if (!passesGrammar) {
             const leader = (await tx.get(playerRef(roomCode, game.leaderUid))).data()
             tx.update(playerRef(roomCode, game.leaderUid), { psd: leader.psd - V.amendPenalty })
             tx.update(gameRef(roomCode), {
@@ -203,28 +206,16 @@ export async function ruleAmendment(roomCode, window, passesGrammar) {
                 ],
             })
         } else {
-            // Dictator: stands immediately, no vote. President: needs the
-            // amendment vote below. Commander can never reach here (UI
-            // hides amending for Commanders).
-            if (game.leaderType === 'Dictator') {
-                nextConstitution[pending.chapterIndex].articles[pending.articleIndex][1] = pending.newText
-                tx.update(gameRef(roomCode), {
-                    constitution: nextConstitution,
-                    pendingAmendment: deleteField(),
-                    [`amendmentsUsedThisTerm.${window}`]: true,
-                    amendmentLog: [
-                        ...game.amendmentLog,
-                        { round: game.round, article: pending.name, leaderUid: game.leaderUid, outcome: 'stands (Dictator)' },
-                    ],
-                })
-            } else {
-                tx.update(gameRef(roomCode), { pendingAmendment: { ...pending, awaitingVote: true } })
-            }
+            tx.update(gameRef(roomCode), { pendingAmendment: { ...pending, awaitingVote: true } })
         }
     })
 }
 
-// President-only: majority-vote outcome for a pending amendment.
+// The amendment vote: everyone except the Leader votes for/against, always
+// (Dictator or President) - it always moves the Leader's popularity.
+// Whether the new wording actually takes effect differs: a Dictator's
+// amendment stands regardless of the vote; a President's only stands if
+// more voted for than against.
 export async function castAmendmentVoteOutcome(roomCode, window, votesFor, votesAgainst) {
     await runTransaction(db, async (tx) => {
         const game = (await tx.get(gameRef(roomCode))).data()
@@ -234,7 +225,7 @@ export async function castAmendmentVoteOutcome(roomCode, window, votesFor, votes
         const newPopularity = applyAmendmentVotes(leader.popularity, votesFor, votesAgainst)
         tx.update(playerRef(roomCode, game.leaderUid), { popularity: newPopularity })
 
-        const stands = votesFor > votesAgainst
+        const stands = game.leaderType === 'Dictator' || votesFor > votesAgainst
         const nextConstitution = JSON.parse(JSON.stringify(game.constitution))
         if (stands) {
             nextConstitution[pending.chapterIndex].articles[pending.articleIndex][1] = pending.newText
@@ -245,7 +236,12 @@ export async function castAmendmentVoteOutcome(roomCode, window, votesFor, votes
             [`amendmentsUsedThisTerm.${window}`]: true,
             amendmentLog: [
                 ...game.amendmentLog,
-                { round: game.round, article: pending.name, leaderUid: game.leaderUid, outcome: stands ? 'stands (majority)' : 'rejected (majority)' },
+                {
+                    round: game.round,
+                    article: pending.name,
+                    leaderUid: game.leaderUid,
+                    outcome: stands ? `stands (${game.leaderType})` : 'rejected (majority)',
+                },
             ],
         })
     })
@@ -328,6 +324,17 @@ export async function attemptCoup(roomCode, challengerUid) {
             turnsCompletedUids: [],
             amendmentsUsedThisTerm: { inauguration: false, midterm: false, farewell: false },
             pendingAmendment: deleteField(),
+        })
+        // Exams are skipped after a coup, straight to the role draw - but
+        // GameBoard still subscribes to this round number, so it needs a
+        // document to exist (revealed: true mirrors round 1's "no exam"
+        // doc from initializeActiveGame) or the UI is stuck on "Loading".
+        tx.set(roundRef(roomCode, game.round + 1), {
+            leaderUid: challengerUid,
+            questions: [],
+            answers: {},
+            revealed: true,
+            votes: {},
         })
         return { success: true }
     })
