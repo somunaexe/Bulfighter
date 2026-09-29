@@ -44,6 +44,18 @@ const playerRef = (roomCode, uid) => doc(db, 'games', roomCode, 'players', uid)
 const roundRef = (roomCode, round) => doc(db, 'games', roomCode, 'rounds', String(round))
 const answerKeyRef = (roomCode, round) => doc(db, 'games', roomCode, 'rounds', String(round), 'secret', 'answerKey')
 
+// Firestore rejects an array whose elements are themselves arrays, but
+// articles.js stores each article as a [name, text] tuple - fine for the
+// site's static rules page, not fine once it needs to live in a Firestore
+// document. This is the one place that shape gets converted to
+// {name, text} objects for storage; every read/write of a room's
+// `constitution` field below uses the object shape.
+const toStorableConstitution = (chapters) =>
+    chapters.map((ch) => ({
+        chapter: ch.chapter,
+        articles: ch.articles.map(([name, text]) => ({ name, text })),
+    }))
+
 // ---------------------------------------------------------------
 // Starting a game (called once, when the host moves the room out of
 // the lobby). Every player gets the same starting PSD/popularity; round 1
@@ -63,7 +75,7 @@ export async function initializeActiveGame(roomCode, playerUids) {
             amendmentsUsedThisTerm: { inauguration: false, midterm: false, farewell: false },
             levy: { amount: V.levy.start, bandLow: V.levy.bandLow, bandHigh: V.levy.bandHigh },
             rules: { passMark: V.passMark, taxRate: V.taxRate, malpracticeFine: V.malpracticeFine },
-            constitution: JSON.parse(JSON.stringify(constitutionChapters)),
+            constitution: toStorableConstitution(constitutionChapters),
             treasury: V.treasuryFor(playerUids.length),
             amendmentLog: [],
         })
@@ -170,8 +182,7 @@ export async function proposeAmendment(roomCode, chapterIndex, articleIndex, rep
     if (game.leaderType === 'Commander') {
         return { valid: false, reason: 'Commanders cannot amend the Constitution' }
     }
-    const article = game.constitution[chapterIndex].articles[articleIndex]
-    const [name, text] = article
+    const { name, text } = game.constitution[chapterIndex].articles[articleIndex]
     const result = applyAmendment(text, replacements)
     if (!result.valid) return result
 
@@ -228,7 +239,7 @@ export async function castAmendmentVoteOutcome(roomCode, window, votesFor, votes
         const stands = game.leaderType === 'Dictator' || votesFor > votesAgainst
         const nextConstitution = JSON.parse(JSON.stringify(game.constitution))
         if (stands) {
-            nextConstitution[pending.chapterIndex].articles[pending.articleIndex][1] = pending.newText
+            nextConstitution[pending.chapterIndex].articles[pending.articleIndex].text = pending.newText
         }
         tx.update(gameRef(roomCode), {
             constitution: nextConstitution,
