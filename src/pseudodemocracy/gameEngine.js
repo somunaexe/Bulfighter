@@ -44,6 +44,7 @@ import { shuffle, drawFromDeck } from './engine/deck.js'
 import { shouldFreeze, canWaitOut } from './engine/corruption.js'
 import { canSicken, startSickness, extendSickness, tickSicknessAndImmunity } from './engine/health.js'
 import { canActOnTurn, canRecruit, shouldDissolve, activistConfrontVotesAgainst, agberoConfrontSteal, resolveTarget } from './engine/unions.js'
+import { isWillValid, nepoDebuffForStage, isNepoBabyDebuffActive } from './engine/wills.js'
 
 // data/cards.js numbers cards by array position, not a separate id field -
 // a "card number" everywhere below is just an index into these arrays.
@@ -100,6 +101,7 @@ export async function initializeActiveGame(roomCode, playerUids) {
             currentPerformance: null,
             currentPrescription: null,
             unions: [],
+            pendingInheritance: null,
         })
         for (const uid of playerUids) {
             tx.update(playerRef(roomCode, uid), {
@@ -117,6 +119,10 @@ export async function initializeActiveGame(roomCode, playerUids) {
                 sicknessOriginalDuration: 0,
                 immunityRoundsRemaining: 0,
                 doctorChargesUsedThisTerm: 0,
+                will: null,
+                willOnHold: false,
+                willPaidThisTerm: false,
+                nepoBabyStage: -1,
             })
         }
         tx.set(roundRef(roomCode, 1), { leaderUid: null, questions: [], answers: {}, revealed: true, votes: {} })
@@ -497,14 +503,124 @@ export async function revokeRole(roomCode, uid, role) {
     })
 }
 
+// Shared by eliminatePlayer and a sabotaged Surgery (acceptHeal) - either
+// way, a death empties the player's PSD/roles immediately. Where that PSD
+// and those roles END UP depends on whether they have a valid will:
+// unwilled (or on-hold) goes straight to the treasury/is rescinded,
+// same as before wills existed; a valid will instead offers it to the
+// named heirs, who accept or reject independently (acceptInheritance/
+// rejectInheritance below).
+function buildEliminationUpdates(game, player) {
+    const playerPatch = { eliminated: true, psd: 0, roles: [] }
+    if (isWillValid(player.will, player.willOnHold)) {
+        return {
+            playerPatch,
+            gamePatch: {
+                pendingInheritance: {
+                    deceasedUid: player.uid,
+                    psdAmount: player.psd,
+                    psdHeirUid: player.will.psdHeirUid,
+                    psdDecision: null,
+                    roleList: player.roles,
+                    roleHeirUid: player.will.roleHeirUid,
+                    roleDecision: null,
+                },
+            },
+        }
+    }
+    return { playerPatch, gamePatch: { treasury: game.treasury + player.psd } }
+}
+
 export async function eliminatePlayer(roomCode, uid) {
     await runTransaction(db, async (tx) => {
         const game = (await tx.get(gameRef(roomCode))).data()
         const player = (await tx.get(playerRef(roomCode, uid))).data()
-        // "Unless willed" (Wills & Inheritance) isn't built yet, so
-        // elimination always rescinds roles and treasures the PSD for now.
-        tx.update(playerRef(roomCode, uid), { eliminated: true, psd: 0, roles: [] })
-        tx.update(gameRef(roomCode), { treasury: game.treasury + player.psd })
+        const { playerPatch, gamePatch } = buildEliminationUpdates(game, { ...player, uid })
+        tx.update(playerRef(roomCode, uid), playerPatch)
+        tx.update(gameRef(roomCode), gamePatch)
+    })
+}
+
+// ---------------------------------------------------------------
+// Wills & Inheritance. Signing a will and paying its upkeep are manual -
+// there's no fixed fee/upkeep number in the rules ("an agreed fee"), same
+// as Doctor dose prices. A missed upkeep payment puts the will on hold at
+// term end (see endTerm/attemptCoup's per-player loop); catching up any
+// time with payWillUpkeep reactivates it.
+// ---------------------------------------------------------------
+export async function makeWill(roomCode, uid, lawyerUid, psdHeirUid, roleHeirUid) {
+    await runTransaction(db, async (tx) => {
+        const lawyer = (await tx.get(playerRef(roomCode, lawyerUid))).data()
+        if (!lawyer.roles.includes('Lawyer')) throw new Error('Not a Lawyer')
+        tx.update(playerRef(roomCode, uid), {
+            will: { lawyerUid, psdHeirUid, roleHeirUid },
+            willOnHold: false,
+            willPaidThisTerm: true,
+        })
+    })
+}
+
+export async function payWillUpkeep(roomCode, uid, amount) {
+    await runTransaction(db, async (tx) => {
+        const player = (await tx.get(playerRef(roomCode, uid))).data()
+        if (!player.will) throw new Error('No will to pay upkeep on')
+        const lawyer = (await tx.get(playerRef(roomCode, player.will.lawyerUid))).data()
+        tx.update(playerRef(roomCode, uid), { psd: player.psd - amount, willOnHold: false, willPaidThisTerm: true })
+        tx.update(playerRef(roomCode, player.will.lawyerUid), { psd: lawyer.psd + amount })
+    })
+}
+
+// An heir accepts or rejects their PSD and/or role inheritance
+// independently. Accepting either makes them a Nepo Baby (if not
+// already), starting the popularity debuff schedule from its first stage.
+export async function acceptInheritance(roomCode, heirUid, part) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const pending = game.pendingInheritance
+        if (!pending) return
+        const heir = (await tx.get(playerRef(roomCode, heirUid))).data()
+        const patch = { nepoBabyStage: heir.nepoBabyStage < 0 ? 0 : heir.nepoBabyStage }
+
+        if (part === 'psd' && heirUid === pending.psdHeirUid && !pending.psdDecision) {
+            patch.psd = heir.psd + pending.psdAmount
+            tx.update(gameRef(roomCode), { pendingInheritance: { ...pending, psdDecision: 'accepted' } })
+        } else if (part === 'role' && heirUid === pending.roleHeirUid && !pending.roleDecision) {
+            patch.roles = [...new Set([...heir.roles, ...pending.roleList])]
+            tx.update(gameRef(roomCode), { pendingInheritance: { ...pending, roleDecision: 'accepted' } })
+        } else {
+            return
+        }
+        tx.update(playerRef(roomCode, heirUid), patch)
+    })
+    await clearInheritanceIfResolved(roomCode)
+}
+
+export async function rejectInheritance(roomCode, heirUid, part) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const pending = game.pendingInheritance
+        if (!pending) return
+
+        if (part === 'psd' && heirUid === pending.psdHeirUid && !pending.psdDecision) {
+            tx.update(gameRef(roomCode), {
+                treasury: game.treasury + pending.psdAmount,
+                pendingInheritance: { ...pending, psdDecision: 'rejected' },
+            })
+        } else if (part === 'role' && heirUid === pending.roleHeirUid && !pending.roleDecision) {
+            // Rejected roles are rescinded, not transferred - nothing to add anywhere.
+            tx.update(gameRef(roomCode), { pendingInheritance: { ...pending, roleDecision: 'rejected' } })
+        }
+    })
+    await clearInheritanceIfResolved(roomCode)
+}
+
+async function clearInheritanceIfResolved(roomCode) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const pending = game.pendingInheritance
+        if (pending && pending.psdDecision && pending.roleDecision) {
+            tx.update(gameRef(roomCode), { pendingInheritance: null })
+        }
     })
 }
 
@@ -759,6 +875,7 @@ export async function acceptHeal(roomCode) {
         const prescription = game.currentPrescription
         if (!prescription || prescription.status !== 'offered') return
         const patient = (await tx.get(playerRef(roomCode, prescription.patientUid))).data()
+        let gamePatch = { currentPrescription: { ...prescription, status: 'accepted', revealed: true } }
 
         if (choice === 'cure') {
             tx.update(playerRef(roomCode, prescription.patientUid), {
@@ -767,15 +884,21 @@ export async function acceptHeal(roomCode) {
                 sicknessOriginalDuration: 0,
             })
         } else if (prescription.doseType === 'surgery') {
-            tx.update(playerRef(roomCode, prescription.patientUid), { eliminated: true, psd: 0, roles: [] })
-            tx.update(gameRef(roomCode), { treasury: game.treasury + patient.psd })
+            // Sabotaged Surgery eliminates the patient - a single
+            // tx.update per document, so the elimination's game-level
+            // patch (treasury or a pending inheritance) is merged into
+            // the same gamePatch as currentPrescription below rather than
+            // a separate tx.update(gameRef(...)) call.
+            const elimination = buildEliminationUpdates(game, { ...patient, uid: prescription.patientUid })
+            tx.update(playerRef(roomCode, prescription.patientUid), elimination.playerPatch)
+            gamePatch = { ...gamePatch, ...elimination.gamePatch }
         } else {
             tx.update(playerRef(roomCode, prescription.patientUid), {
                 sicknessRoundsRemaining: extendSickness(patient.sicknessRoundsRemaining, doseRounds(prescription.doseType)),
             })
         }
 
-        tx.update(gameRef(roomCode), { currentPrescription: { ...prescription, status: 'accepted', revealed: true } })
+        tx.update(gameRef(roomCode), gamePatch)
     })
 }
 
@@ -869,6 +992,15 @@ export async function attemptCoup(roomCode, challengerUid, players) {
             patch.immunityRoundsRemaining = ticked.immunityRoundsRemaining
             patch.sicknessOriginalDuration = ticked.sicknessOriginalDuration
             patch.doctorChargesUsedThisTerm = 0
+            // A will whose upkeep wasn't paid this term goes on hold;
+            // paying any time afterwards (payWillUpkeep) reactivates it.
+            if (p.will && !p.willPaidThisTerm) patch.willOnHold = true
+            patch.willPaidThisTerm = false
+            // Nepo Baby debuff: -30/-20/-10 over 3 rounds, then nothing.
+            if (p.nepoBabyStage >= 0 && isNepoBabyDebuffActive(p.nepoBabyStage, V.nepoDebuff.length)) {
+                patch.popularity = clampPopularity((patch.popularity ?? p.popularity) + nepoDebuffForStage(V.nepoDebuff, p.nepoBabyStage))
+                patch.nepoBabyStage = p.nepoBabyStage + 1
+            }
             tx.update(playerRef(roomCode, p.uid), patch)
         }
         tx.update(gameRef(roomCode), {
@@ -928,6 +1060,15 @@ export async function endTerm(roomCode, players) {
             patch.immunityRoundsRemaining = ticked.immunityRoundsRemaining
             patch.sicknessOriginalDuration = ticked.sicknessOriginalDuration
             patch.doctorChargesUsedThisTerm = 0
+            // A will whose upkeep wasn't paid this term goes on hold;
+            // paying any time afterwards (payWillUpkeep) reactivates it.
+            if (p.will && !p.willPaidThisTerm) patch.willOnHold = true
+            patch.willPaidThisTerm = false
+            // Nepo Baby debuff: -30/-20/-10 over 3 rounds, then nothing.
+            if (p.nepoBabyStage >= 0 && isNepoBabyDebuffActive(p.nepoBabyStage, V.nepoDebuff.length)) {
+                patch.popularity = clampPopularity((patch.popularity ?? p.popularity) + nepoDebuffForStage(V.nepoDebuff, p.nepoBabyStage))
+                patch.nepoBabyStage = p.nepoBabyStage + 1
+            }
             tx.update(playerRef(roomCode, p.uid), patch)
         }
 
