@@ -11,7 +11,6 @@ import {
     grantRole,
     revokeRole,
     ROLE_OPTIONS,
-    eliminatePlayer,
     getCardText,
     getPerformanceCardText,
 } from '../gameEngine.js'
@@ -57,9 +56,6 @@ const AdjustStat = ({ roomCode, players }) => {
             </button>
             <button onClick={() => revokeRole(roomCode, uid, role)} className="field-btn">
                 - Role
-            </button>
-            <button onClick={() => eliminatePlayer(roomCode, uid)} className="field-btn hover:bg-red-500 hover:text-white transition-colors">
-                Eliminate
             </button>
         </div>
     )

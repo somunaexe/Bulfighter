@@ -61,6 +61,7 @@ import {
     payWillUpkeep,
     acceptInheritance,
     rejectInheritance,
+    clearPrescription,
 } from '../../src/pseudodemocracy/gameEngine.js'
 import { parseHighlights } from '../../src/pseudodemocracy/parseHighlights.js'
 import { V } from '../../src/pseudodemocracy/psdData.js'
@@ -315,6 +316,13 @@ function chaosTick() {
             actions.push(() => run('acceptHeal', () => acceptHeal(roomCode)))
             actions.push(() => run('rejectHeal', () => rejectHeal(roomCode)))
         }
+    }
+    // Dismiss whatever prescription is sitting there, resolved or not -
+    // anyone can hit this in the real UI (it's just the "Dismiss" button),
+    // and firing it before resolution tests that clearing mid-flow doesn't
+    // leave acceptHeal/rejectHeal/guessSabotage pointed at a stale doc.
+    if (game.currentPrescription) {
+        actions.push(() => run('clearPrescription', () => clearPrescription(roomCode)))
     }
 
     // Unions: found one if not in one; act on whatever union we're in

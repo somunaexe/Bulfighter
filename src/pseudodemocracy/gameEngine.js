@@ -514,13 +514,13 @@ export async function revokeRole(roomCode, uid, role) {
     })
 }
 
-// Shared by eliminatePlayer and a sabotaged Surgery (acceptHeal) - either
-// way, a death empties the player's PSD/roles immediately. Where that PSD
-// and those roles END UP depends on whether they have a valid will:
-// unwilled (or on-hold) goes straight to the treasury/is rescinded,
-// same as before wills existed; a valid will instead offers it to the
-// named heirs, who accept or reject independently (acceptInheritance/
-// rejectInheritance below).
+// The only way a player dies is a sabotaged Surgery (acceptHeal below) -
+// this builds the resulting updates: a death empties the player's
+// PSD/roles immediately. Where that PSD and those roles END UP depends on
+// whether they have a valid will: unwilled (or on-hold) goes straight to
+// the treasury/is rescinded, same as before wills existed; a valid will
+// instead offers it to the named heirs, who accept or reject independently
+// (acceptInheritance/rejectInheritance below).
 function buildEliminationUpdates(game, player) {
     const playerPatch = { eliminated: true, psd: 0, roles: [] }
     if (isWillValid(player.will, player.willOnHold)) {
@@ -540,16 +540,6 @@ function buildEliminationUpdates(game, player) {
         }
     }
     return { playerPatch, gamePatch: { treasury: game.treasury + player.psd } }
-}
-
-export async function eliminatePlayer(roomCode, uid) {
-    await runTransaction(db, async (tx) => {
-        const game = (await tx.get(gameRef(roomCode))).data()
-        const player = (await tx.get(playerRef(roomCode, uid))).data()
-        const { playerPatch, gamePatch } = buildEliminationUpdates(game, { ...player, uid })
-        tx.update(playerRef(roomCode, uid), playerPatch)
-        tx.update(gameRef(roomCode), gamePatch)
-    })
 }
 
 // ---------------------------------------------------------------
