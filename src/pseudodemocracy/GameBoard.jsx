@@ -57,13 +57,13 @@ const GameBoard = ({ roomCode, room: game, players }) => {
                         </div>
                     )
                 }
-                return <AmendmentPanel roomCode={roomCode} game={game} me={me} window="inauguration" />
+                return <AmendmentPanel roomCode={roomCode} game={game} me={me} players={players} window="inauguration" />
             case 'levy':
                 return <LevyPanel roomCode={roomCode} game={game} me={me} />
             case 'turns': {
                 const threshold = midTermThreshold(activePlayerCount)
                 if (game.turnsCompletedUids.length >= threshold && !game.amendmentsUsedThisTerm.midterm) {
-                    return <AmendmentPanel roomCode={roomCode} game={game} me={me} window="midterm" />
+                    return <AmendmentPanel roomCode={roomCode} game={game} me={me} players={players} window="midterm" />
                 }
                 return <TurnsPanel roomCode={roomCode} game={game} me={me} players={players} />
             }
@@ -71,7 +71,7 @@ const GameBoard = ({ roomCode, room: game, players }) => {
                 if (game.amendmentsUsedThisTerm.farewell && !game.pendingAmendment) {
                     return <TermEndPanel roomCode={roomCode} game={game} players={players} />
                 }
-                return <AmendmentPanel roomCode={roomCode} game={game} me={me} window="farewell" />
+                return <AmendmentPanel roomCode={roomCode} game={game} me={me} players={players} window="farewell" />
             default:
                 return null
         }

@@ -63,7 +63,7 @@ function quickStart() {
     line(`**${V.coupCost} PSD + 1 coup card**, and you must be **${V.coupGap}+ points** more popular than the Leader. Success stops the round; you draw a Leader role and start the next round.`),
     head('Amending the Constitution'),
     dot(`Write it privately, then announce. Only __highlighted__ words, one for one, in correct English \u2014 or it\u2019s reverted, the window is used up, and you pay ${V.amendPenalty} PSD.`),
-    dot(`Everyone except the Leader votes at once, no discussion: **+${V.amendVote}** Leader popularity per vote for, **\u2212${V.amendVote}** per vote against.`),
+    dot(`Everyone except the Leader votes at once, no discussion: each vote for or against moves the Leader's popularity by the base swing (${swingText}).`),
     head('Performance votes'),
     dot(`Perform the card, then ${V.discussionMinutes} minute of discussion (you stay silent). Vote on 3: good \u2192 **${V.goodCard}**, bad \u2192 **${V.badCard}**.`),
     dot(`Popularity moves by the base swing (${swingText}). Ties: no change. Out of sync: null vote + ${V.malpracticeFine} PSD fine.`),
@@ -189,7 +189,7 @@ children.push(
   bullet('An amendment blocked by an Agbero Confront also uses up that window.'),
   h2('The amendment vote'),
   bullet('Straight after an amendment, everyone **except the Leader** votes for or against it. No discussion.'),
-  bullet(`Each vote **for** gives the Leader **+${V.amendVote}** popularity. Each vote **against** gives **−${V.amendVote}**.`),
+  bullet(`Each vote **for or against** moves the Leader's popularity by the base swing for the current table size (${swingText}) - same table as Part 5's performance votes.`),
   bullet('**Dictator:** the amendment stands whatever the result. **President:** it stands only if more players vote for it than against; otherwise the old wording returns. **Commander:** can’t amend.'),
   bullet('Record every amendment in the Amendment Record at the end of the Constitution.'),
 );
