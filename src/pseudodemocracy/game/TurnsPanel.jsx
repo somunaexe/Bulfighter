@@ -1,10 +1,121 @@
-import { useState } from 'react'
-import { payTaxAndCompleteTurn, advanceToFarewell } from '../gameEngine.js'
+import { useEffect, useRef, useState } from 'react'
+import {
+    payTaxAndCompleteTurn,
+    advanceToFarewell,
+    drawPerformanceCard,
+    castPerformanceVote,
+    resolvePerformanceVote,
+    clearPerformance,
+    adjustPlayerStat,
+    getCardText,
+    getPerformanceCardText,
+} from '../gameEngine.js'
 
-// A "turn" here is a placeholder for Phase 2b's performance-card deck -
-// for now a player just declares their income for the term (from whatever
-// happens live on your call) and pays levy + tax on it. Once cards exist,
-// this becomes automatic instead of self-reported.
+const AdjustStat = ({ roomCode, players }) => {
+    const [uid, setUid] = useState(players[0]?.uid)
+    const [field, setField] = useState('psd')
+    const [delta, setDelta] = useState(0)
+    return (
+        <div className="flex flex-wrap items-center gap-2 mt-3">
+            <select value={uid} onChange={(e) => setUid(e.target.value)} className="px-2 py-1 rounded border border-black-300 bg-transparent">
+                {players.map((p) => (
+                    <option key={p.uid} value={p.uid}>{p.name}</option>
+                ))}
+            </select>
+            <select value={field} onChange={(e) => setField(e.target.value)} className="px-2 py-1 rounded border border-black-300 bg-transparent">
+                <option value="psd">PSD</option>
+                <option value="popularity">Popularity</option>
+            </select>
+            <input
+                type="number"
+                value={delta}
+                onChange={(e) => setDelta(Number(e.target.value))}
+                className="w-24 px-2 py-1 rounded border border-black-300 bg-transparent"
+                placeholder="+/- amount"
+            />
+            <button onClick={() => adjustPlayerStat(roomCode, uid, field, delta)} className="field-btn">
+                Apply
+            </button>
+        </div>
+    )
+}
+
+const PerformancePanel = ({ roomCode, game, me, players, performer, activeOrder }) => {
+    const current = game.currentPerformance
+    const isPerformer = me.uid === performer.uid
+    const eligibleVoters = activeOrder.filter((uid) => uid !== performer.uid)
+    const votesIn = Object.keys(current.votes || {}).length
+    const myVote = current.votes?.[me.uid]
+
+    const resolvedRef = useRef(false)
+    useEffect(() => {
+        if (!current.resolved && votesIn >= eligibleVoters.length && eligibleVoters.length > 0 && !resolvedRef.current) {
+            resolvedRef.current = true
+            resolvePerformanceVote(roomCode, activeOrder.length)
+        }
+    }, [current.resolved, votesIn, eligibleVoters.length, roomCode, activeOrder.length])
+
+    if (!current.resolved) {
+        return (
+            <div className="surface-card p-6 mb-6">
+                <p className="font-semibold text-white-800 mb-1">{performer.name} is performing</p>
+                <p className="text-white-800 mb-4 italic">&quot;{getPerformanceCardText(current.cardNumber)}&quot;</p>
+                {isPerformer ? (
+                    <p className="text-white-600">Perform it live, then stay silent during discussion. Waiting for votes...</p>
+                ) : (
+                    <>
+                        <p className="text-white-600 text-sm mb-2">{votesIn} / {eligibleVoters.length} votes cast.</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => castPerformanceVote(roomCode, me.uid, 'good')}
+                                disabled={Boolean(myVote)}
+                                className={`field-btn disabled:opacity-50 ${myVote === 'good' ? 'bg-[rgb(var(--theme-accent))] text-white' : ''}`}
+                            >
+                                Good
+                            </button>
+                            <button
+                                onClick={() => castPerformanceVote(roomCode, me.uid, 'bad')}
+                                disabled={Boolean(myVote)}
+                                className={`field-btn disabled:opacity-50 ${myVote === 'bad' ? 'bg-[rgb(var(--theme-accent))] text-white' : ''}`}
+                            >
+                                Bad
+                            </button>
+                        </div>
+                    </>
+                )}
+            </div>
+        )
+    }
+
+    return (
+        <div className="surface-card p-6 mb-6">
+            <p className="font-semibold text-white-800 mb-1">
+                {current.resultType === 'tie' ? 'Tied vote - no change' : current.resultType === 'settlement' ? 'Settlement card' : 'Scandal card'}
+            </p>
+            {current.resultType !== 'tie' && (
+                <p className="text-white-800 mb-4 italic">&quot;{getCardText(current.resultType, current.resultCardNumber)}&quot;</p>
+            )}
+            <p className="text-white-600 text-sm mb-1">
+                Apply whatever the card says using the tool below - PSD/popularity changes for anyone, including {performer.name}.
+            </p>
+            <AdjustStat roomCode={roomCode} players={players} />
+            <div className="mt-4">
+                <button
+                    onClick={() => clearPerformance(roomCode)}
+                    className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors"
+                >
+                    Done - continue my turn
+                </button>
+            </div>
+        </div>
+    )
+}
+
+// A "turn" is: draw and perform a Performance card, resolve the vote and
+// its Settlement/Scandal card, then declare whatever taxable income came
+// out of it and pay levy + tax on that. Card effects that aren't income
+// (losses, payments to another player, popularity, corruption markers...)
+// are applied directly via the adjustment tool above, not taxed again here.
 const TurnsPanel = ({ roomCode, game, me, players }) => {
     const [income, setIncome] = useState(0)
     const [busy, setBusy] = useState(false)
@@ -25,40 +136,62 @@ const TurnsPanel = ({ roomCode, game, me, players }) => {
         )
     }
 
+    if (game.currentPerformance) {
+        return (
+            <PerformancePanel
+                roomCode={roomCode}
+                game={game}
+                me={me}
+                players={players}
+                performer={currentPlayer}
+                activeOrder={activeOrder}
+            />
+        )
+    }
+
     return (
         <div className="surface-card p-6 mb-6">
             <p className="font-semibold text-white-800 mb-1">
                 Turn {game.turnsCompletedUids.length + 1} / {activeOrder.length}: {currentPlayer?.name}&apos;s turn
             </p>
-            <p className="text-white-600 text-sm mb-4">
-                Play out your turn on your call (a performance card, a union action, seeing the Doctor...), then
-                declare what you earned this term so the levy ({game.levy.amount} PSD) and {game.rules.taxRate}%
-                tax come out of it.
-            </p>
             {isMyTurn ? (
                 <>
-                    <input
-                        type="number"
-                        value={income}
-                        onChange={(e) => setIncome(Number(e.target.value))}
-                        placeholder="Income this term"
-                        className="w-40 px-3 py-2 rounded-md bg-transparent border border-black-300 mb-4"
-                    />
+                    <p className="text-white-600 text-sm mb-4">Draw a Performance card to start your turn.</p>
+                    <button
+                        onClick={() => drawPerformanceCard(roomCode, me.uid)}
+                        className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors mb-4"
+                    >
+                        Draw a Performance card
+                    </button>
                     <div>
-                        <button
-                            onClick={async () => {
-                                setBusy(true)
-                                try {
-                                    await payTaxAndCompleteTurn(roomCode, me.uid, income)
-                                } finally {
-                                    setBusy(false)
-                                }
-                            }}
-                            disabled={busy}
-                            className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors disabled:opacity-50"
-                        >
-                            Pay and end my turn
-                        </button>
+                        <p className="text-white-600 text-sm mb-2">
+                            Once resolved, declare any taxable income you collected (not losses/payments - those were
+                            already applied above) so levy ({game.levy.amount} PSD) and {game.rules.taxRate}% tax come
+                            out of it.
+                        </p>
+                        <input
+                            type="number"
+                            value={income}
+                            onChange={(e) => setIncome(Number(e.target.value))}
+                            placeholder="Taxable income this term"
+                            className="w-48 px-3 py-2 rounded-md bg-transparent border border-black-300 mb-4"
+                        />
+                        <div>
+                            <button
+                                onClick={async () => {
+                                    setBusy(true)
+                                    try {
+                                        await payTaxAndCompleteTurn(roomCode, me.uid, income)
+                                    } finally {
+                                        setBusy(false)
+                                    }
+                                }}
+                                disabled={busy}
+                                className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors disabled:opacity-50"
+                            >
+                                Pay and end my turn
+                            </button>
+                        </div>
                     </div>
                 </>
             ) : (
