@@ -8,6 +8,9 @@ import {
     clearPerformance,
     adjustPlayerStat,
     addCorruptionMarker,
+    grantRole,
+    revokeRole,
+    ROLE_OPTIONS,
     getCardText,
     getPerformanceCardText,
 } from '../gameEngine.js'
@@ -16,6 +19,7 @@ const AdjustStat = ({ roomCode, players }) => {
     const [uid, setUid] = useState(players[0]?.uid)
     const [field, setField] = useState('psd')
     const [delta, setDelta] = useState(0)
+    const [role, setRole] = useState(ROLE_OPTIONS[0])
     return (
         <div className="flex flex-wrap items-center gap-2 mt-3">
             <select value={uid} onChange={(e) => setUid(e.target.value)} className="px-2 py-1 rounded border border-black-300 bg-transparent">
@@ -39,6 +43,17 @@ const AdjustStat = ({ roomCode, players }) => {
             </button>
             <button onClick={() => addCorruptionMarker(roomCode, uid)} className="field-btn">
                 + Corruption marker
+            </button>
+            <select value={role} onChange={(e) => setRole(e.target.value)} className="px-2 py-1 rounded border border-black-300 bg-transparent">
+                {ROLE_OPTIONS.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                ))}
+            </select>
+            <button onClick={() => grantRole(roomCode, uid, role)} className="field-btn">
+                + Role
+            </button>
+            <button onClick={() => revokeRole(roomCode, uid, role)} className="field-btn">
+                - Role
             </button>
         </div>
     )

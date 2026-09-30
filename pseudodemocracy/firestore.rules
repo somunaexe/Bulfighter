@@ -47,6 +47,20 @@ service cloud.firestore {
                        && request.auth.uid == get(/databases/$(database)/documents/games/$(roomCode)/rounds/$(round)).data.leaderUid;
         }
       }
+
+      // The Doctor's real Cure/Poison choice on a Heal offer, sealed the
+      // same way as the exam answer key: only that prescription's Doctor
+      // can read it until games/{roomCode}'s currentPrescription.revealed
+      // is true (set once someone accepts or guesses Sabotage).
+      match /prescriptionSecret/{doc} {
+        allow read: if request.auth != null
+                    && (
+                      request.auth.uid == get(/databases/$(database)/documents/games/$(roomCode)).data.currentPrescription.doctorUid
+                      || get(/databases/$(database)/documents/games/$(roomCode)).data.currentPrescription.revealed == true
+                    );
+        allow write: if request.auth != null
+                     && request.auth.uid == get(/databases/$(database)/documents/games/$(roomCode)).data.currentPrescription.doctorUid;
+      }
     }
   }
 }
