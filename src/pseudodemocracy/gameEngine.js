@@ -419,8 +419,8 @@ export async function clearPerformance(roomCode) {
 // popularity is always clamped to [-50, 50] everywhere else it changes,
 // so this clamps it too rather than using a raw, unbounded increment.
 export async function adjustPlayerStat(roomCode, uid, field, delta) {
-    if (field === 'psd') {
-        await updateDoc(playerRef(roomCode, uid), { psd: increment(delta) })
+    if (field === 'psd' || field === 'roundsAsLeader') {
+        await updateDoc(playerRef(roomCode, uid), { [field]: increment(delta) })
         return
     }
     await runTransaction(db, async (tx) => {
@@ -485,7 +485,7 @@ export function getCardText(resultType, cardNumber) {
 // granting/revoking is manual (via a card's text, e.g. "you become a
 // Doctor"), the same self-reporting trust model as the rest of this game.
 // ---------------------------------------------------------------
-export const ROLE_OPTIONS = ['Doctor', 'Lawyer', 'Secret Agent', 'Activist', 'Agbero', 'Civilian']
+export const ROLE_OPTIONS = ['Doctor', 'Lawyer', 'Secret Agent', 'Activist', 'Agbero', 'Civilian', 'Vice']
 
 export async function grantRole(roomCode, uid, role) {
     await runTransaction(db, async (tx) => {

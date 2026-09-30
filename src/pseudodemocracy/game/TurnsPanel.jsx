@@ -31,9 +31,11 @@ const AdjustStat = ({ roomCode, players }) => {
             <select value={field} onChange={(e) => setField(e.target.value)} className="px-2 py-1 rounded border border-black-300 bg-transparent">
                 <option value="psd">PSD</option>
                 <option value="popularity">Popularity</option>
+                <option value="roundsAsLeader">Rounds as Leader (e.g. Vice's 0.5)</option>
             </select>
             <input
                 type="number"
+                step="0.5"
                 value={delta}
                 onChange={(e) => setDelta(Number(e.target.value))}
                 className="w-24 px-2 py-1 rounded border border-black-300 bg-transparent"
