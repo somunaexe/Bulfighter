@@ -14,7 +14,7 @@
 - Symbols such as − and + can be highlighted; each counts as one word.
 - Writing an amendment (rule): the Leader writes the new wording privately, then announces it. The table checks that only highlighted words changed and the article still makes grammatical sense. The grammar check is decided by correct English, not by a player vote (a vote would be too corrupt). If the check fails, the article reverts, that amendment window is used up, and the Leader pays 100 PSD to the treasury.
 - Dictator: amendment always stands. President: stands only if a majority votes for it. Commander: cannot amend.
-- Amendment vote: immediate, no discussion. Each vote for/against moves the Leader's popularity by the base swing for the current number of active players (the same swing table Part 5 uses for performance votes) - for or against, one swing per vote. (Updated 2026-09-30: was previously a flat +1/-1 per vote regardless of table size.)
+- Amendment vote: immediate, no discussion. The raw vote count (+1 for/-1 against per CHANGES.md) decides whether the amendment stands (Dictator: always; President: needs a majority; Commander: can't amend) - that comparison is NOT scaled. Separately, the Leader's popularity moves by the base swing for the current number of active players (Part 5's swing table) per vote for/against, not a flat ±1. (Updated 2026-09-30: popularity used to move by a flat +1/-1 per vote too; now only the stands/rejected decision is flat.)
 - Three amendment windows per term: inauguration, mid-term, farewell.
 - A term = one round (every player takes one turn). Mid-term = once at least half the players have played (round up: 5 players → after the 3rd).
 
