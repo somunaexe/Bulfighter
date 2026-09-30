@@ -42,6 +42,21 @@ import {
     adjustPlayerStat,
     endTerm,
     midTermThreshold,
+    grantRole,
+    revokeRole,
+    ROLE_OPTIONS,
+    sicken,
+    offerHeal,
+    rejectHeal,
+    guessSabotage,
+    acceptHeal,
+    foundUnion,
+    recruitMember,
+    leaveUnion,
+    kickMember,
+    disperseUnion,
+    confrontLeader,
+    commandPerformance,
 } from '../../src/pseudodemocracy/gameEngine.js'
 import { parseHighlights } from '../../src/pseudodemocracy/parseHighlights.js'
 import { V } from '../../src/pseudodemocracy/psdData.js'
@@ -261,6 +276,70 @@ function chaosTick() {
         const delta = pick([1, -1, 10, -10, 100, -100, 1000, -1000])
         return run(`adjustPlayerStat -> ${target.name} ${field} ${delta}`, () => adjustPlayerStat(roomCode, target.uid, field, delta))
     })
+
+    // Roles: grant/revoke a random tag on a random player.
+    actions.push(() => {
+        const target = pick(players)
+        const role = pick(ROLE_OPTIONS)
+        return Math.random() < 0.7
+            ? run(`grantRole -> ${target.name} ${role}`, () => grantRole(roomCode, target.uid, role))
+            : run(`revokeRole -> ${target.name} ${role}`, () => revokeRole(roomCode, target.uid, role))
+    })
+
+    // Health: Doctor actions if we hold the role, regardless of whether we
+    // think we have charges left (tests the charges-exhausted guard too).
+    if (me.roles?.includes('Doctor') && others.length > 0) {
+        actions.push(() => {
+            const target = pick(others)
+            const doseType = pick(['agbo', 'concoction'])
+            return run(`sicken -> ${target.name} (${doseType})`, () => sicken(roomCode, myUid, target.uid, doseType))
+        })
+        actions.push(() => {
+            const target = pick(others)
+            const doseType = pick(['agbo', 'concoction', 'surgery'])
+            const choice = pick(['cure', 'poison'])
+            const price = rand(100)
+            return run(`offerHeal -> ${target.name} (${doseType}, secretly ${choice})`, () =>
+                offerHeal(roomCode, myUid, target.uid, doseType, choice, price)
+            )
+        })
+    }
+    if (game.currentPrescription?.status === 'offered') {
+        const p = game.currentPrescription
+        actions.push(() => run('guessSabotage', () => guessSabotage(roomCode, myUid)))
+        if (p.patientUid === myUid) {
+            actions.push(() => run('acceptHeal', () => acceptHeal(roomCode)))
+            actions.push(() => run('rejectHeal', () => rejectHeal(roomCode)))
+        }
+    }
+
+    // Unions: found one if not in one; act on whatever union we're in
+    // regardless of whether it's actually our turn (tests the turn-gate).
+    const myUnion = (game.unions || []).find((u) => u.memberUids.includes(myUid))
+    if (!myUnion) {
+        actions.push(() => run(`foundUnion (${pick(['activist', 'agbero'])})`, () => foundUnion(roomCode, myUid, pick(['activist', 'agbero']))))
+    } else {
+        const nonMembers = players.filter((p) => !myUnion.memberUids.includes(p.uid))
+        if (nonMembers.length > 0) {
+            const target = pick(nonMembers)
+            actions.push(() => run(`recruitMember -> ${target.name}`, () => recruitMember(roomCode, myUnion.id, target.uid)))
+        }
+        actions.push(() => run('leaveUnion (self)', () => leaveUnion(roomCode, myUnion.id, myUid)))
+        if (myUnion.unionizerUid === myUid) {
+            const otherMembers = myUnion.memberUids.filter((uid) => uid !== myUid)
+            if (otherMembers.length > 0) {
+                const targetUid = pick(otherMembers)
+                actions.push(() => run(`kickMember -> ${targetUid}`, () => kickMember(roomCode, myUnion.id, targetUid)))
+            }
+            actions.push(() => run('disperseUnion', () => disperseUnion(roomCode, myUnion.id)))
+            actions.push(() =>
+                run('commandPerformance', () => commandPerformance(roomCode, myUnion.id, 'Bot-scripted scenario', undefined))
+            )
+        }
+        if (game.pendingAmendment) {
+            actions.push(() => run('confrontLeader (maybe already confronted)', () => confrontLeader(roomCode, myUnion.id, undefined)))
+        }
+    }
 
     // Amendments: only while a window's open and nothing's pending, and
     // only the sitting Leader can propose (matches the real UI gate) -
