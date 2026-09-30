@@ -486,6 +486,14 @@ export async function advanceToFarewell(roomCode) {
 export async function attemptCoup(roomCode, challengerUid, players) {
     return runTransaction(db, async (tx) => {
         const game = (await tx.get(gameRef(roomCode))).data()
+        // No sitting Leader yet (e.g. round 1, still in the 'vote' phase
+        // before anyone's been elected) - nothing to coup. The real UI
+        // (CoupPanel) already hides the button in this case, but the
+        // eligibility check below needs a leader's data to run at all, so
+        // this has to be guarded here too rather than trusting every
+        // caller to have checked first.
+        if (!game.leaderUid) return { success: false }
+
         const challenger = (await tx.get(playerRef(roomCode, challengerUid))).data()
         const leader = (await tx.get(playerRef(roomCode, game.leaderUid))).data()
 
