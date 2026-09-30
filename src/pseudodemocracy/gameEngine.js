@@ -43,6 +43,7 @@ import { applyAmendment } from './engine/amendment.js'
 import { shuffle, drawFromDeck } from './engine/deck.js'
 import { shouldFreeze, canWaitOut } from './engine/corruption.js'
 import { canSicken, startSickness, extendSickness, tickSicknessAndImmunity } from './engine/health.js'
+import { canActOnTurn, canRecruit, shouldDissolve, activistConfrontVotesAgainst, agberoConfrontSteal, resolveTarget } from './engine/unions.js'
 
 // data/cards.js numbers cards by array position, not a separate id field -
 // a "card number" everywhere below is just an index into these arrays.
@@ -98,6 +99,7 @@ export async function initializeActiveGame(roomCode, playerUids) {
             scandalDrawIndex: 0,
             currentPerformance: null,
             currentPrescription: null,
+            unions: [],
         })
         for (const uid of playerUids) {
             tx.update(playerRef(roomCode, uid), {
@@ -260,11 +262,16 @@ export async function castAmendmentVoteOutcome(roomCode, window, votesFor, votes
         const game = (await tx.get(gameRef(roomCode))).data()
         const pending = game.pendingAmendment
         if (!pending) return
+        // An Activist Confront doubles the union's total vote, automatically
+        // against the Leader - folded into the against-count here rather
+        // than in confrontLeader, since it doesn't apply until the actual
+        // amendment vote happens.
+        const totalAgainst = votesAgainst + (pending.confrontBonusAgainst || 0)
         const leader = (await tx.get(playerRef(roomCode, game.leaderUid))).data()
-        const newPopularity = applyAmendmentVotes(leader.popularity, votesFor, votesAgainst, playerCount)
+        const newPopularity = applyAmendmentVotes(leader.popularity, votesFor, totalAgainst, playerCount)
         tx.update(playerRef(roomCode, game.leaderUid), { popularity: newPopularity })
 
-        const stands = game.leaderType === 'Dictator' || votesFor > votesAgainst
+        const stands = game.leaderType === 'Dictator' || votesFor > totalAgainst
         const nextConstitution = JSON.parse(JSON.stringify(game.constitution))
         if (stands) {
             nextConstitution[pending.chapterIndex].articles[pending.articleIndex].text = pending.newText
@@ -356,6 +363,20 @@ export async function resolvePerformanceVote(roomCode, playerCount) {
         const performer = (await tx.get(playerRef(roomCode, current.performerUid))).data()
         const newPopularity = applyPerformanceVote(performer.popularity, goodVotes, badVotes, playerCount)
         tx.update(playerRef(roomCode, current.performerUid), { popularity: newPopularity })
+
+        // A union's Command Performance is scripted by the unionizer, not
+        // drawn from the deck - only the popularity swing applies, no
+        // Settlement/Scandal card. An Agbero union disperses the instant
+        // it acts (Activist unions linger).
+        if (current.isCommand) {
+            const union = game.unions?.find((u) => u.id === current.unionId)
+            const nextUnions = union?.type === 'agbero' ? game.unions.filter((u) => u.id !== current.unionId) : game.unions
+            tx.update(gameRef(roomCode), {
+                unions: nextUnions || [],
+                currentPerformance: { ...current, resolved: true, resultType: 'command' },
+            })
+            return
+        }
 
         const resultType = goodVotes > badVotes ? 'settlement' : 'scandal'
 
@@ -484,6 +505,152 @@ export async function eliminatePlayer(roomCode, uid) {
         // elimination always rescinds roles and treasures the PSD for now.
         tx.update(playerRef(roomCode, uid), { eliminated: true, psd: 0, roles: [] })
         tx.update(gameRef(roomCode), { treasury: game.treasury + player.psd })
+    })
+}
+
+// ---------------------------------------------------------------
+// Unions (Activist/Agbero). A player founds one (from a card, like other
+// role grants - self-reported), becomes its unionizer/Capon, and others
+// join. Recruiting/kicking/Command Performance are gated to the
+// unionizer's turn (or the Leader's turn if the Leader is a member);
+// Confront the Leader is the explicit exception, usable any time the
+// Leader is mid-amendment. game.unions is the only place membership
+// lives - no per-player union field, so there's nothing to fall out of
+// sync.
+// ---------------------------------------------------------------
+const currentTurnUid = (game) => game.turnOrder[game.currentTurnIndex % game.turnOrder.length]
+const amendmentWindowFor = (game) => (game.phase === 'turns' ? 'midterm' : game.phase)
+
+export async function foundUnion(roomCode, unionizerUid, type) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const unions = game.unions || []
+        if (unions.some((u) => u.memberUids.includes(unionizerUid))) {
+            throw new Error('Already in a union')
+        }
+        const union = { id: `${Date.now()}-${unionizerUid}`, type, unionizerUid, memberUids: [unionizerUid] }
+        tx.update(gameRef(roomCode), { unions: [...unions, union] })
+    })
+}
+
+export async function recruitMember(roomCode, unionId, targetUid) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const unions = game.unions || []
+        const union = unions.find((u) => u.id === unionId)
+        if (!union) throw new Error('Union not found')
+        if (!canActOnTurn(union, currentTurnUid(game), game.leaderUid)) throw new Error("Not this union's turn")
+        const alreadyInAUnion = unions.some((u) => u.memberUids.includes(targetUid))
+        if (!canRecruit(targetUid, game.leaderUid, alreadyInAUnion)) throw new Error('Cannot recruit that player')
+        const nextUnions = unions.map((u) => (u.id === unionId ? { ...u, memberUids: [...u.memberUids, targetUid] } : u))
+        tx.update(gameRef(roomCode), { unions: nextUnions })
+    })
+}
+
+// Shared by a member leaving on their own turn and the unionizer kicking
+// someone on a union turn - both just remove a member the same way, and
+// dropping to 1 dissolves the union (the card is lost).
+async function removeUnionMember(roomCode, unionId, targetUid) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const unions = game.unions || []
+        const union = unions.find((u) => u.id === unionId)
+        if (!union) return
+        const remaining = union.memberUids.filter((uid) => uid !== targetUid)
+        const nextUnions = shouldDissolve(remaining.length)
+            ? unions.filter((u) => u.id !== unionId)
+            : unions.map((u) => (u.id === unionId ? { ...u, memberUids: remaining } : u))
+        tx.update(gameRef(roomCode), { unions: nextUnions })
+    })
+}
+export const leaveUnion = (roomCode, unionId, memberUid) => removeUnionMember(roomCode, unionId, memberUid)
+export const kickMember = (roomCode, unionId, targetUid) => removeUnionMember(roomCode, unionId, targetUid)
+
+export async function disperseUnion(roomCode, unionId) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        tx.update(gameRef(roomCode), { unions: (game.unions || []).filter((u) => u.id !== unionId) })
+    })
+}
+
+// Confront the Leader - "once only" per amendment, tracked via
+// pendingAmendment.confrontedBy so the same union can't stack it twice on
+// one pending amendment. Activist: folds a vote-against bonus into the
+// eventual amendment vote (see castAmendmentVoteOutcome). Agbero: steals
+// 50 x union size from the target immediately and blocks the amendment
+// outright - that's a different failure mode than a bad grammar check,
+// so no amendPenalty, but the window is still used up and the union
+// disperses (Agbero gains are personal, split evenly, not shared).
+export async function confrontLeader(roomCode, unionId, chosenRivalUid) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const union = (game.unions || []).find((u) => u.id === unionId)
+        if (!union) throw new Error('Union not found')
+        if (!game.pendingAmendment) throw new Error('The Leader is not currently amending anything')
+        if (game.pendingAmendment.confrontedBy?.includes(unionId)) {
+            throw new Error('This union already confronted this amendment')
+        }
+
+        const target = resolveTarget(union, game.leaderUid, chosenRivalUid)
+        // "Leader in Union" needs a chosen rival, not just a leader who
+        // happens to be a member - fail loudly here rather than letting a
+        // missing target reach a Firestore doc() call with an undefined
+        // id (the same class of crash attemptCoup had before its guard).
+        if (!target) throw new Error('No rival chosen - the Leader is in this union and needs a target')
+        const unionSize = union.memberUids.length
+
+        if (union.type === 'activist') {
+            tx.update(gameRef(roomCode), {
+                pendingAmendment: {
+                    ...game.pendingAmendment,
+                    confrontBonusAgainst: (game.pendingAmendment.confrontBonusAgainst || 0) + activistConfrontVotesAgainst(unionSize),
+                    confrontedBy: [...(game.pendingAmendment.confrontedBy || []), unionId],
+                },
+            })
+            return
+        }
+
+        // Agbero: every read before any write (Firestore transactions
+        // require it) - the target and every member's current PSD.
+        const targetPlayer = (await tx.get(playerRef(roomCode, target))).data()
+        const members = []
+        for (const uid of union.memberUids) {
+            members.push({ uid, psd: (await tx.get(playerRef(roomCode, uid))).data().psd })
+        }
+        const { total, perMember } = agberoConfrontSteal(unionSize, V.agberoSteal)
+
+        tx.update(playerRef(roomCode, target), { psd: targetPlayer.psd - total })
+        for (const m of members) {
+            tx.update(playerRef(roomCode, m.uid), { psd: m.psd + perMember })
+        }
+        tx.update(gameRef(roomCode), {
+            pendingAmendment: deleteField(),
+            [`amendmentsUsedThisTerm.${amendmentWindowFor(game)}`]: true,
+            unions: (game.unions || []).filter((u) => u.id !== unionId),
+            amendmentLog: [
+                ...game.amendmentLog,
+                { round: game.round, article: game.pendingAmendment.name, leaderUid: game.leaderUid, outcome: 'blocked (Agbero Confront)' },
+            ],
+        })
+    })
+}
+
+// On the unionizer's turn - the Leader (or a rival, if the Leader is in
+// the union) performs a scenario the unionizer scripted live, instead of
+// a drawn card. Reuses the same vote/resolve pipeline as a normal
+// performance (see resolvePerformanceVote's isCommand branch).
+export async function commandPerformance(roomCode, unionId, scenarioText, chosenRivalUid) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const union = (game.unions || []).find((u) => u.id === unionId)
+        if (!union) throw new Error('Union not found')
+        if (currentTurnUid(game) !== union.unionizerUid) throw new Error("Not the unionizer's turn")
+        if (game.currentPerformance) throw new Error('A performance is already in progress')
+        const performerUid = resolveTarget(union, game.leaderUid, chosenRivalUid)
+        if (!performerUid) throw new Error('No rival chosen - the Leader is in this union and needs a target')
+        tx.update(gameRef(roomCode), {
+            currentPerformance: { performerUid, scenarioText, isCommand: true, unionId, votes: {}, resolved: false },
+        })
     })
 }
 

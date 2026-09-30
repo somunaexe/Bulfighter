@@ -77,8 +77,12 @@ const PerformancePanel = ({ roomCode, game, me, players, performer, activeOrder 
     if (!current.resolved) {
         return (
             <div className="surface-card p-6 mb-6">
-                <p className="font-semibold text-white-800 mb-1">{performer.name} is performing</p>
-                <p className="text-white-800 mb-4 italic">&quot;{getPerformanceCardText(current.cardNumber)}&quot;</p>
+                <p className="font-semibold text-white-800 mb-1">
+                    {performer.name} is performing{current.isCommand ? ' (Command Performance)' : ''}
+                </p>
+                <p className="text-white-800 mb-4 italic">
+                    &quot;{current.isCommand ? current.scenarioText : getPerformanceCardText(current.cardNumber)}&quot;
+                </p>
                 {isPerformer ? (
                     <p className="text-white-600">Perform it live, then stay silent during discussion. Waiting for votes...</p>
                 ) : (
@@ -111,6 +115,7 @@ const PerformancePanel = ({ roomCode, game, me, players, performer, activeOrder 
         settlement: 'Settlement card',
         scandal: 'Scandal card',
         'settlement-blocked': `${performer.name} is frozen - no Settlement card`,
+        command: 'Command Performance resolved',
     }[current.resultType]
 
     return (
@@ -122,19 +127,26 @@ const PerformancePanel = ({ roomCode, game, me, players, performer, activeOrder 
                     cards while frozen - the popularity swing still applied, just no card.
                 </p>
             )}
+            {current.resultType === 'command' && (
+                <p className="text-white-600 mb-4">No card is drawn for a Command Performance - just the popularity swing, already applied.</p>
+            )}
             {(current.resultType === 'settlement' || current.resultType === 'scandal') && (
                 <p className="text-white-800 mb-4 italic">&quot;{getCardText(current.resultType, current.resultCardNumber)}&quot;</p>
             )}
-            <p className="text-white-600 text-sm mb-1">
-                Apply whatever the card says using the tool below - PSD/popularity changes for anyone, including {performer.name}.
-            </p>
-            <AdjustStat roomCode={roomCode} players={players} />
+            {current.resultType !== 'command' && (
+                <>
+                    <p className="text-white-600 text-sm mb-1">
+                        Apply whatever the card says using the tool below - PSD/popularity changes for anyone, including {performer.name}.
+                    </p>
+                    <AdjustStat roomCode={roomCode} players={players} />
+                </>
+            )}
             <div className="mt-4">
                 <button
                     onClick={() => clearPerformance(roomCode)}
                     className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors"
                 >
-                    Done - continue my turn
+                    Done
                 </button>
             </div>
         </div>
@@ -173,7 +185,7 @@ const TurnsPanel = ({ roomCode, game, me, players }) => {
                 game={game}
                 me={me}
                 players={players}
-                performer={currentPlayer}
+                performer={players.find((p) => p.uid === game.currentPerformance.performerUid)}
                 activeOrder={activeOrder}
             />
         )
