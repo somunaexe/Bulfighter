@@ -17,7 +17,7 @@ import TermEndPanel from './game/TermEndPanel.jsx'
 
 // Routes to the right panel for the room's current phase. See
 // gameEngine.js for the full phase list and what advances each one.
-const GameBoard = ({ roomCode, room: game, players }) => {
+const GameBoard = ({ roomCode, room: game, players, viewAsUid }) => {
     const [roundState, setRoundState] = useState(null)
 
     useEffect(() => {
@@ -25,7 +25,7 @@ const GameBoard = ({ roomCode, room: game, players }) => {
         return subscribeToRound(roomCode, game.round, setRoundState)
     }, [roomCode, game.round])
 
-    const me = players.find((p) => p.uid === auth.currentUser?.uid)
+    const me = players.find((p) => p.uid === (viewAsUid ?? auth.currentUser?.uid))
     const leader = players.find((p) => p.uid === game.leaderUid)
 
     if (!me || !roundState) {

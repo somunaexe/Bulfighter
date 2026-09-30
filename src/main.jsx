@@ -12,6 +12,7 @@ const Admin = lazy(() => import('./admin/Admin.jsx'))
 const ConsentsForm = lazy(() => import('./sections/ConsentForm.jsx'))
 const Clips = lazy(() => import('./sections/Clips.jsx'))
 const Pseudodemocracy = lazy(() => import('./sections/Pseudodemocracy.jsx'))
+const PseudodemocracySpectate = lazy(() => import('./pseudodemocracy/Spectate.jsx'))
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -27,6 +28,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/clips" element={<Clips />} />
 
           <Route path="/pseudodemocracy" element={<Pseudodemocracy />} />
+          <Route path="/pseudodemocracy/spectate" element={<PseudodemocracySpectate />} />
 
           {/* Page for casted members */}
           <Route path="consent" element={<ConsentsForm />} />
