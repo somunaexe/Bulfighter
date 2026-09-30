@@ -9,8 +9,12 @@ const Scoreboard = ({ players, leaderUid }) => (
                     <span>
                         {p.name}
                         {p.uid === leaderUid && <span className="text-[rgb(var(--theme-accent))] font-semibold"> (Leader)</span>}
+                        {p.roles?.length > 0 && <span className="text-white-600"> ({p.roles.join(', ')})</span>}
                         {isCancelled(p.popularity || 0) && <span className="text-red-500"> CANCELLED</span>}
                         {p.frozen && <span className="text-red-500"> FROZEN</span>}
+                        {p.sicknessRoundsRemaining > 0 && <span className="text-red-500"> SICK ({p.sicknessRoundsRemaining})</span>}
+                        {p.immunityRoundsRemaining > 0 && <span className="text-[rgb(var(--theme-accent))]"> IMMUNE ({p.immunityRoundsRemaining})</span>}
+                        {p.eliminated && <span className="text-red-500"> ELIMINATED</span>}
                     </span>
                     <span>
                         {p.roundsAsLeader || 0} rounds &middot; {p.psd ?? 0} PSD &middot; {p.popularity ?? 0} pop

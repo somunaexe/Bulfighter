@@ -42,6 +42,7 @@ import { tiebreakScore } from './engine/tiebreak.js'
 import { applyAmendment } from './engine/amendment.js'
 import { shuffle, drawFromDeck } from './engine/deck.js'
 import { shouldFreeze, canWaitOut } from './engine/corruption.js'
+import { canSicken, startSickness, extendSickness, tickSicknessAndImmunity } from './engine/health.js'
 
 // data/cards.js numbers cards by array position, not a separate id field -
 // a "card number" everywhere below is just an index into these arrays.
@@ -96,6 +97,7 @@ export async function initializeActiveGame(roomCode, playerUids) {
             scandalDeck: shuffle(SCANDAL_NUMBERS),
             scandalDrawIndex: 0,
             currentPerformance: null,
+            currentPrescription: null,
         })
         for (const uid of playerUids) {
             tx.update(playerRef(roomCode, uid), {
@@ -108,6 +110,11 @@ export async function initializeActiveGame(roomCode, playerUids) {
                 corruptionMarkers: 0,
                 frozen: false,
                 frozenSinceRound: null,
+                roles: [],
+                sicknessRoundsRemaining: 0,
+                sicknessOriginalDuration: 0,
+                immunityRoundsRemaining: 0,
+                doctorChargesUsedThisTerm: 0,
             })
         }
         tx.set(roundRef(roomCode, 1), { leaderUid: null, questions: [], answers: {}, revealed: true, votes: {} })
@@ -445,6 +452,170 @@ export function getCardText(resultType, cardNumber) {
     return undefined
 }
 
+// ---------------------------------------------------------------
+// Non-Leader roles - a lightweight tag list per player. Nothing else
+// enforces role-specific powers yet beyond what Health/Doctor needs below;
+// granting/revoking is manual (via a card's text, e.g. "you become a
+// Doctor"), the same self-reporting trust model as the rest of this game.
+// ---------------------------------------------------------------
+export const ROLE_OPTIONS = ['Doctor', 'Lawyer', 'Secret Agent', 'Activist', 'Agbero', 'Civilian']
+
+export async function grantRole(roomCode, uid, role) {
+    await runTransaction(db, async (tx) => {
+        const player = (await tx.get(playerRef(roomCode, uid))).data()
+        if (!player.roles.includes(role)) {
+            tx.update(playerRef(roomCode, uid), { roles: [...player.roles, role] })
+        }
+    })
+}
+
+export async function revokeRole(roomCode, uid, role) {
+    await runTransaction(db, async (tx) => {
+        const player = (await tx.get(playerRef(roomCode, uid))).data()
+        tx.update(playerRef(roomCode, uid), { roles: player.roles.filter((r) => r !== role) })
+    })
+}
+
+export async function eliminatePlayer(roomCode, uid) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const player = (await tx.get(playerRef(roomCode, uid))).data()
+        // "Unless willed" (Wills & Inheritance) isn't built yet, so
+        // elimination always rescinds roles and treasures the PSD for now.
+        tx.update(playerRef(roomCode, uid), { eliminated: true, psd: 0, roles: [] })
+        tx.update(gameRef(roomCode), { treasury: game.treasury + player.psd })
+    })
+}
+
+// ---------------------------------------------------------------
+// Doctor & Health. A dose is Agbo, Concoction or Surgery (V.agboRounds/
+// V.concoctionRounds; Surgery is instant). Sicken is an open action - no
+// secrecy. Heal carries the Sabotage risk: the Doctor's real choice (Cure
+// or Poison) is written to a secret document only they can read until
+// revealed, mirroring the sealed exam answer key, so a Sabotage guess is
+// a real guess, not something anyone could peek at first.
+//
+// Guessing Sabotage always ends in a real Cure for the patient, whichever
+// way the guess goes: a right guess forces the Doctor to give a real Cure
+// (and costs them the Doctor role); a wrong guess means it was never
+// Poison, so it was always going to be a Cure. Only an UNguessed Poison
+// (resolved via acceptHeal) actually harms the patient - extra sick time
+// for Agbo/Concoction, elimination for Surgery (sabotage-only, per the
+// rules - Surgery can't be used to openly Sicken).
+// ---------------------------------------------------------------
+const prescriptionSecretRef = (roomCode) => doc(db, 'games', roomCode, 'prescriptionSecret', 'data')
+
+const doseRounds = (doseType) => (doseType === 'agbo' ? V.agboRounds : V.concoctionRounds)
+
+export async function sicken(roomCode, doctorUid, patientUid, doseType) {
+    if (doseType === 'surgery') throw new Error('Surgery cannot be used to sicken')
+    await runTransaction(db, async (tx) => {
+        const doctor = (await tx.get(playerRef(roomCode, doctorUid))).data()
+        const patient = (await tx.get(playerRef(roomCode, patientUid))).data()
+        if (!doctor.roles.includes('Doctor')) throw new Error('Not a Doctor')
+        if (doctor.doctorChargesUsedThisTerm >= V.doctorCharges) throw new Error('No Doctor charges left this term')
+        if (!canSicken(patient.sicknessRoundsRemaining, patient.immunityRoundsRemaining)) {
+            throw new Error('That player cannot be sickened right now (already sick or immune)')
+        }
+        tx.update(playerRef(roomCode, doctorUid), { doctorChargesUsedThisTerm: doctor.doctorChargesUsedThisTerm + 1 })
+        tx.update(playerRef(roomCode, patientUid), startSickness(doseRounds(doseType)))
+    })
+}
+
+export async function offerHeal(roomCode, doctorUid, patientUid, doseType, choice, price) {
+    await runTransaction(db, async (tx) => {
+        const doctor = (await tx.get(playerRef(roomCode, doctorUid))).data()
+        const patient = (await tx.get(playerRef(roomCode, patientUid))).data()
+        if (!doctor.roles.includes('Doctor')) throw new Error('Not a Doctor')
+        if (doctor.doctorChargesUsedThisTerm >= V.doctorCharges) throw new Error('No Doctor charges left this term')
+        // A Heal only makes sense on an existing sickness - it also
+        // guarantees sicknessOriginalDuration is already set correctly,
+        // so an undetected Poison (acceptHeal) extends the real sickness
+        // instead of starting a fresh one with no recorded original
+        // duration, which would grant zero immunity on recovery.
+        if (patient.sicknessRoundsRemaining <= 0) throw new Error('That player is not sick - nothing to heal')
+        tx.update(playerRef(roomCode, doctorUid), { doctorChargesUsedThisTerm: doctor.doctorChargesUsedThisTerm + 1 })
+        tx.update(gameRef(roomCode), {
+            currentPrescription: { doctorUid, patientUid, doseType, price, status: 'offered', revealed: false },
+        })
+    })
+    await setDoc(prescriptionSecretRef(roomCode), { choice })
+}
+
+// The patient may reject any cure they're offered, no questions asked.
+export async function rejectHeal(roomCode) {
+    await updateDoc(gameRef(roomCode), { currentPrescription: null })
+}
+
+export async function guessSabotage(roomCode, guesserUid) {
+    const secretSnap = await getDoc(prescriptionSecretRef(roomCode))
+    const { choice } = secretSnap.data()
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const prescription = game.currentPrescription
+        if (!prescription || prescription.status !== 'offered') return
+        const patient = (await tx.get(playerRef(roomCode, prescription.patientUid))).data()
+
+        tx.update(playerRef(roomCode, prescription.patientUid), {
+            sicknessRoundsRemaining: 0,
+            immunityRoundsRemaining: patient.sicknessOriginalDuration || 0,
+            sicknessOriginalDuration: 0,
+        })
+
+        if (choice === 'poison') {
+            const doctor = (await tx.get(playerRef(roomCode, prescription.doctorUid))).data()
+            tx.update(playerRef(roomCode, prescription.doctorUid), { roles: doctor.roles.filter((r) => r !== 'Doctor') })
+        } else {
+            const guesser = (await tx.get(playerRef(roomCode, guesserUid))).data()
+            const doctor = (await tx.get(playerRef(roomCode, prescription.doctorUid))).data()
+            tx.update(playerRef(roomCode, guesserUid), { psd: guesser.psd - prescription.price })
+            tx.update(playerRef(roomCode, prescription.doctorUid), { psd: doctor.psd + prescription.price })
+        }
+
+        tx.update(gameRef(roomCode), {
+            currentPrescription: {
+                ...prescription,
+                status: choice === 'poison' ? 'guessed-right' : 'guessed-wrong',
+                guesserUid,
+                revealed: true,
+            },
+        })
+    })
+}
+
+// Nobody guessed - resolves as whatever the Doctor actually wrote.
+export async function acceptHeal(roomCode) {
+    const secretSnap = await getDoc(prescriptionSecretRef(roomCode))
+    const { choice } = secretSnap.data()
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const prescription = game.currentPrescription
+        if (!prescription || prescription.status !== 'offered') return
+        const patient = (await tx.get(playerRef(roomCode, prescription.patientUid))).data()
+
+        if (choice === 'cure') {
+            tx.update(playerRef(roomCode, prescription.patientUid), {
+                sicknessRoundsRemaining: 0,
+                immunityRoundsRemaining: patient.sicknessOriginalDuration || 0,
+                sicknessOriginalDuration: 0,
+            })
+        } else if (prescription.doseType === 'surgery') {
+            tx.update(playerRef(roomCode, prescription.patientUid), { eliminated: true, psd: 0, roles: [] })
+            tx.update(gameRef(roomCode), { treasury: game.treasury + patient.psd })
+        } else {
+            tx.update(playerRef(roomCode, prescription.patientUid), {
+                sicknessRoundsRemaining: extendSickness(patient.sicknessRoundsRemaining, doseRounds(prescription.doseType)),
+            })
+        }
+
+        tx.update(gameRef(roomCode), { currentPrescription: { ...prescription, status: 'accepted', revealed: true } })
+    })
+}
+
+export async function clearPrescription(roomCode) {
+    await updateDoc(gameRef(roomCode), { currentPrescription: null })
+}
+
 export function getPerformanceCardText(cardNumber) {
     return performanceCards[cardNumber]
 }
@@ -506,20 +677,33 @@ export async function attemptCoup(roomCode, challengerUid, players) {
         if (!eligible) return { success: false }
 
         // A coup ends the current term abruptly, so it also ticks a
-        // frozen player's "wait it out" clock, same as endTerm.
+        // frozen player's "wait it out" clock and sickness/immunity, and
+        // resets Doctor charges, same as endTerm. Combined into one
+        // update per player (rather than separate calls for the couped
+        // Leader's half-round and the challenger's cost) so a player who
+        // is also in `players` only gets written once.
         const nextRound = game.round + 1
         for (const p of players) {
-            if (p.frozen && canWaitOut(p.frozenSinceRound, nextRound, V.corruption.wait)) {
-                tx.update(playerRef(roomCode, p.uid), { frozen: false, frozenSinceRound: null })
+            const patch = {}
+            if (p.uid === game.leaderUid) {
+                // Couped Leader scores half a round instead of a full one.
+                patch.roundsAsLeader = (leader.roundsAsLeader || 0) + 0.5
             }
+            if (p.uid === challengerUid) {
+                patch.psd = challenger.psd - V.coupCost
+                patch.coupCards = challenger.coupCards - 1
+            }
+            if (p.frozen && canWaitOut(p.frozenSinceRound, nextRound, V.corruption.wait)) {
+                patch.frozen = false
+                patch.frozenSinceRound = null
+            }
+            const ticked = tickSicknessAndImmunity(p)
+            patch.sicknessRoundsRemaining = ticked.sicknessRoundsRemaining
+            patch.immunityRoundsRemaining = ticked.immunityRoundsRemaining
+            patch.sicknessOriginalDuration = ticked.sicknessOriginalDuration
+            patch.doctorChargesUsedThisTerm = 0
+            tx.update(playerRef(roomCode, p.uid), patch)
         }
-
-        // Couped Leader scores half a round instead of a full one.
-        tx.update(playerRef(roomCode, game.leaderUid), { roundsAsLeader: (leader.roundsAsLeader || 0) + 0.5 })
-        tx.update(playerRef(roomCode, challengerUid), {
-            psd: challenger.psd - V.coupCost,
-            coupCards: challenger.coupCards - 1,
-        })
         tx.update(gameRef(roomCode), {
             treasury: game.treasury + V.coupCost,
             leaderUid: challengerUid,
@@ -555,16 +739,29 @@ export async function endTerm(roomCode, players) {
         const game = (await tx.get(gameRef(roomCode))).data()
         const leader = (await tx.get(playerRef(roomCode, game.leaderUid))).data()
 
-        tx.update(playerRef(roomCode, game.leaderUid), { roundsAsLeader: (leader.roundsAsLeader || 0) + 1 })
-
-        // A term just ended, so this is when a frozen player's "wait it
-        // out" clock ticks - lift the freeze once they've waited long
-        // enough, per player, without refunding the popularity they lost.
+        // A term just ended: award it to the Leader, tick a frozen
+        // player's "wait it out" clock (lifts the freeze once they've
+        // waited long enough, without refunding the popularity they
+        // lost), tick sickness/immunity for everyone, and reset Doctor
+        // charges for the new term. Combined into one update per player
+        // (rather than a separate call for the Leader's round count) so
+        // the Leader, who is also in `players`, only gets written once.
         const nextRound = game.round + 1
         for (const p of players) {
-            if (p.frozen && canWaitOut(p.frozenSinceRound, nextRound, V.corruption.wait)) {
-                tx.update(playerRef(roomCode, p.uid), { frozen: false, frozenSinceRound: null })
+            const patch = {}
+            if (p.uid === game.leaderUid) {
+                patch.roundsAsLeader = (leader.roundsAsLeader || 0) + 1
             }
+            if (p.frozen && canWaitOut(p.frozenSinceRound, nextRound, V.corruption.wait)) {
+                patch.frozen = false
+                patch.frozenSinceRound = null
+            }
+            const ticked = tickSicknessAndImmunity(p)
+            patch.sicknessRoundsRemaining = ticked.sicknessRoundsRemaining
+            patch.immunityRoundsRemaining = ticked.immunityRoundsRemaining
+            patch.sicknessOriginalDuration = ticked.sicknessOriginalDuration
+            patch.doctorChargesUsedThisTerm = 0
+            tx.update(playerRef(roomCode, p.uid), patch)
         }
 
         const nextBand = shiftLevyBand(

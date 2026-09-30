@@ -4,6 +4,7 @@ import { subscribeToRound, advancePhaseAfterInauguration, midTermThreshold } fro
 import Scoreboard from './game/Scoreboard.jsx'
 import CoupPanel from './game/CoupPanel.jsx'
 import CorruptionPanel from './game/CorruptionPanel.jsx'
+import HealthPanel from './game/HealthPanel.jsx'
 import ExamPanel from './game/ExamPanel.jsx'
 import VotePanel from './game/VotePanel.jsx'
 import RoleDrawPanel from './game/RoleDrawPanel.jsx'
@@ -83,6 +84,7 @@ const GameBoard = ({ roomCode, room: game, players }) => {
             <Scoreboard players={players} leaderUid={game.leaderUid} />
             <CoupPanel roomCode={roomCode} me={me} leader={leader} players={players} />
             <CorruptionPanel roomCode={roomCode} me={me} />
+            <HealthPanel roomCode={roomCode} game={game} me={me} players={players} />
             {renderPhase()}
         </div>
     )
