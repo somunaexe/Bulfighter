@@ -15,6 +15,8 @@ const Scoreboard = ({ players, leaderUid }) => (
                         {p.sicknessRoundsRemaining > 0 && <span className="text-red-500"> SICK ({p.sicknessRoundsRemaining})</span>}
                         {p.immunityRoundsRemaining > 0 && <span className="text-[rgb(var(--theme-accent))]"> IMMUNE ({p.immunityRoundsRemaining})</span>}
                         {p.eliminated && <span className="text-red-500"> ELIMINATED</span>}
+                        {p.willOnHold && <span className="text-red-500"> WILL ON HOLD</span>}
+                        {p.nepoBabyStage >= 0 && p.nepoBabyStage < 3 && <span className="text-red-500"> NEPO BABY</span>}
                     </span>
                     <span>
                         {p.roundsAsLeader || 0} rounds &middot; {p.psd ?? 0} PSD &middot; {p.popularity ?? 0} pop
