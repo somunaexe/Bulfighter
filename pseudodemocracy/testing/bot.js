@@ -57,6 +57,10 @@ import {
     disperseUnion,
     confrontLeader,
     commandPerformance,
+    makeWill,
+    payWillUpkeep,
+    acceptInheritance,
+    rejectInheritance,
 } from '../../src/pseudodemocracy/gameEngine.js'
 import { parseHighlights } from '../../src/pseudodemocracy/parseHighlights.js'
 import { V } from '../../src/pseudodemocracy/psdData.js'
@@ -339,6 +343,30 @@ function chaosTick() {
         if (game.pendingAmendment) {
             actions.push(() => run('confrontLeader (maybe already confronted)', () => confrontLeader(roomCode, myUnion.id, undefined)))
         }
+    }
+
+    // Wills: sign one if we don't have one yet (try both a real Lawyer and a
+    // random non-Lawyer target, to exercise the "Not a Lawyer" guard); if we
+    // do have one, pay upkeep with a plausible-but-arbitrary amount.
+    if (!me.will) {
+        actions.push(() => {
+            const lawyers = players.filter((p) => p.roles?.includes('Lawyer'))
+            const lawyerUid = Math.random() < 0.7 && lawyers.length > 0 ? pick(lawyers).uid : pick(players).uid
+            const psdHeirUid = pick(players).uid
+            const roleHeirUid = pick(players).uid
+            return run(`makeWill (lawyer ${lawyerUid})`, () => makeWill(roomCode, myUid, lawyerUid, psdHeirUid, roleHeirUid))
+        })
+    } else {
+        actions.push(() => run('payWillUpkeep', () => payWillUpkeep(roomCode, myUid, rand(50))))
+    }
+
+    // Inheritance: act on a pending inheritance regardless of whether we're
+    // actually the named heir, to exercise the mismatched-heir guard too.
+    if (game.pendingInheritance) {
+        actions.push(() => run('acceptInheritance (psd)', () => acceptInheritance(roomCode, myUid, 'psd')))
+        actions.push(() => run('rejectInheritance (psd)', () => rejectInheritance(roomCode, myUid, 'psd')))
+        actions.push(() => run('acceptInheritance (role)', () => acceptInheritance(roomCode, myUid, 'role')))
+        actions.push(() => run('rejectInheritance (role)', () => rejectInheritance(roomCode, myUid, 'role')))
     }
 
     // Amendments: only while a window's open and nothing's pending, and
