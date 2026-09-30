@@ -9,3 +9,4 @@
 // or juggle two separate import statements every time it needs both.
 export { V, fmt, ord, notesList } from '../../pseudodemocracy/build/game_data.js'
 export { default as constitutionChapters } from '../../pseudodemocracy/build/articles.js'
+export { settlementCards, scandalCards, performanceCards, glossary } from '../../pseudodemocracy/build/cards.js'

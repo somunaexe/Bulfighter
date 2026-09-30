@@ -7,7 +7,8 @@
 //   games/{roomCode}
 //     round, phase, leaderUid, leaderType, turnOrder, currentTurnIndex,
 //     turnsCompletedUids, amendmentsUsedThisTerm, levy, rules,
-//     constitution, treasury, amendmentLog
+//     constitution, treasury, amendmentLog, performanceDeck/DrawIndex,
+//     settlementDeck/DrawIndex, scandalDeck/DrawIndex, currentPerformance
 //   games/{roomCode}/players/{uid}
 //     + psd, popularity, eliminated, examPassedThisRound, coupCards
 //   games/{roomCode}/rounds/{round}
@@ -29,15 +30,22 @@ import {
     onSnapshot,
     runTransaction,
     deleteField,
+    increment,
 } from 'firebase/firestore'
 import { db } from './firebase.js'
-import { V, constitutionChapters } from './psdData.js'
+import { V, constitutionChapters, settlementCards, scandalCards, performanceCards } from './psdData.js'
 import { canAttemptCoup } from './engine/coup.js'
-import { isCancelled, applyAmendmentVotes } from './engine/popularity.js'
+import { isCancelled, applyAmendmentVotes, applyPerformanceVote, clampPopularity } from './engine/popularity.js'
 import { didPass, scoreAnswers } from './engine/exam.js'
 import { shiftLevyBand, clampLevyToBand } from './engine/levy.js'
 import { tiebreakScore } from './engine/tiebreak.js'
 import { applyAmendment } from './engine/amendment.js'
+import { shuffle, drawFromDeck } from './engine/deck.js'
+
+const PERFORMANCE_NUMBERS = performanceCards.map((c) => c.n)
+const SETTLEMENT_NUMBERS = settlementCards.map((c) => c.n)
+const SCANDAL_NUMBERS = scandalCards.map((c) => c.n)
+const findCard = (cards, n) => cards.find((c) => c.n === n)
 
 const gameRef = (roomCode) => doc(db, 'games', roomCode)
 const playerRef = (roomCode, uid) => doc(db, 'games', roomCode, 'players', uid)
@@ -78,6 +86,13 @@ export async function initializeActiveGame(roomCode, playerUids) {
             constitution: toStorableConstitution(constitutionChapters),
             treasury: V.treasuryFor(playerUids.length),
             amendmentLog: [],
+            performanceDeck: shuffle(PERFORMANCE_NUMBERS),
+            performanceDrawIndex: 0,
+            settlementDeck: shuffle(SETTLEMENT_NUMBERS),
+            settlementDrawIndex: 0,
+            scandalDeck: shuffle(SCANDAL_NUMBERS),
+            scandalDrawIndex: 0,
+            currentPerformance: null,
         })
         for (const uid of playerUids) {
             tx.update(playerRef(roomCode, uid), {
@@ -268,14 +283,109 @@ export async function advancePhaseAfterInauguration(roomCode) {
 
 // ---------------------------------------------------------------
 // Levy - the Leader sets it within the current band, then everyone pays
-// levy + tax on their declared income for the term (income is entered
-// manually for now - Phase 2b's card deck will make this automatic).
+// levy + tax on their income for the term. A card's text says what a
+// player collects/loses (see drawPerformanceCard below); income here is
+// whatever they end up with in hand once that's been applied manually.
 // ---------------------------------------------------------------
 export async function setLevy(roomCode, amount) {
     const game = (await getDoc(gameRef(roomCode))).data()
     const clamped = clampLevyToBand(amount, { low: game.levy.bandLow, high: game.levy.bandHigh })
     await updateDoc(gameRef(roomCode), { 'levy.amount': clamped, phase: 'turns' })
     return clamped
+}
+
+// ---------------------------------------------------------------
+// Performance cards - the actual content of a turn. A player draws a
+// scenario and performs it live (on your call, per the site owner's
+// choice to keep performances off-platform); everyone else votes
+// good/bad; the swing from engine/popularity.js applies; a Settlement or
+// Scandal card is drawn to match. What a drawn card's text actually DOES
+// (transfer PSD, change popularity, hand out a role, mark a corruption
+// marker, etc.) is wildly varied across the 150-card deck and often needs
+// a human judgement call anyway ("the table votes on whether they
+// believed you") - rather than trying to parse and auto-execute every
+// card, the table applies it themselves with adjustPlayerStat below, the
+// same self-reporting trust model the rest of this game already uses.
+// ---------------------------------------------------------------
+export async function drawPerformanceCard(roomCode, performerUid) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const { cardNumber, deckOrder, drawIndex } = drawFromDeck(game.performanceDeck, game.performanceDrawIndex, PERFORMANCE_NUMBERS)
+        tx.update(gameRef(roomCode), {
+            performanceDeck: deckOrder,
+            performanceDrawIndex: drawIndex,
+            currentPerformance: { performerUid, cardNumber, votes: {}, resolved: false },
+        })
+    })
+}
+
+export async function castPerformanceVote(roomCode, voterUid, vote) {
+    await updateDoc(gameRef(roomCode), { [`currentPerformance.votes.${voterUid}`]: vote })
+}
+
+// Auto-resolves once every eligible voter (everyone except the performer)
+// has voted - same "no button to misuse" pattern as the leader vote.
+export async function resolvePerformanceVote(roomCode, playerCount) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const current = game.currentPerformance
+        if (!current || current.resolved) return
+
+        const votes = Object.values(current.votes)
+        const goodVotes = votes.filter((v) => v === 'good').length
+        const badVotes = votes.filter((v) => v === 'bad').length
+
+        if (goodVotes === badVotes) {
+            tx.update(gameRef(roomCode), { currentPerformance: { ...current, resolved: true, resultType: 'tie' } })
+            return
+        }
+
+        const performer = (await tx.get(playerRef(roomCode, current.performerUid))).data()
+        const newPopularity = applyPerformanceVote(performer.popularity, goodVotes, badVotes, playerCount)
+        tx.update(playerRef(roomCode, current.performerUid), { popularity: newPopularity })
+
+        const resultType = goodVotes > badVotes ? 'settlement' : 'scandal'
+        const deckKey = resultType === 'settlement' ? 'settlementDeck' : 'scandalDeck'
+        const indexKey = resultType === 'settlement' ? 'settlementDrawIndex' : 'scandalDrawIndex'
+        const allNumbers = resultType === 'settlement' ? SETTLEMENT_NUMBERS : SCANDAL_NUMBERS
+        const { cardNumber, deckOrder, drawIndex } = drawFromDeck(game[deckKey], game[indexKey], allNumbers)
+
+        tx.update(gameRef(roomCode), {
+            [deckKey]: deckOrder,
+            [indexKey]: drawIndex,
+            currentPerformance: { ...current, resolved: true, resultType, resultCardNumber: cardNumber },
+        })
+    })
+}
+
+export async function clearPerformance(roomCode) {
+    await updateDoc(gameRef(roomCode), { currentPerformance: null })
+}
+
+// Lets the table self-apply what a drawn card's text says (see the note
+// above on why this isn't automated) - field is 'psd' or 'popularity'.
+// PSD has no stated floor in the rules (a card can put you in debt), but
+// popularity is always clamped to [-50, 50] everywhere else it changes,
+// so this clamps it too rather than using a raw, unbounded increment.
+export async function adjustPlayerStat(roomCode, uid, field, delta) {
+    if (field === 'psd') {
+        await updateDoc(playerRef(roomCode, uid), { psd: increment(delta) })
+        return
+    }
+    await runTransaction(db, async (tx) => {
+        const player = (await tx.get(playerRef(roomCode, uid))).data()
+        tx.update(playerRef(roomCode, uid), { popularity: clampPopularity(player.popularity + delta) })
+    })
+}
+
+export function getCardText(resultType, cardNumber) {
+    if (resultType === 'settlement') return findCard(settlementCards, cardNumber)?.text
+    if (resultType === 'scandal') return findCard(scandalCards, cardNumber)?.text
+    return undefined
+}
+
+export function getPerformanceCardText(cardNumber) {
+    return findCard(performanceCards, cardNumber)?.text
 }
 
 // Pays levy + tax and advances the turn order as one atomic, idempotent
