@@ -1,10 +1,10 @@
 // Builds the complete Player's Handbook: Quick-Start Summary, rules, Constitution.
-// Every number comes from game_data.js; every article from articles.js.
+// Every number comes from ../data/game_data.js; every article from ../data/articles.js.
 import fs from 'fs'
 import { Paragraph, TextRun, Packer, PageBreak, BorderStyle, Table, TableRow, TableCell, WidthType, HeadingLevel } from 'docx'
 import * as S from './psd_style.js'
-import { V, fmt, ord, notesList } from './game_data.js'
-import chapters from './articles.js'
+import { V, fmt, ord, notesList } from '../data/game_data.js'
+import chapters from '../data/articles.js'
 const { p, bullet, step, newList, h1, h2, gap, table, box, muted, W } = S;
 
 // ---- Article lookup by name (fails loudly on a typo) ----

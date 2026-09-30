@@ -33,7 +33,7 @@ import {
     increment,
 } from 'firebase/firestore'
 import { db } from './firebase.js'
-import { V, constitutionChapters, settlementCards, scandalCards, performanceCards } from './psdData.js'
+import { V, constitutionChapters, cardData } from './psdData.js'
 import { canAttemptCoup } from './engine/coup.js'
 import { isCancelled, applyAmendmentVotes, applyPerformanceVote, clampPopularity } from './engine/popularity.js'
 import { didPass, scoreAnswers } from './engine/exam.js'
@@ -42,10 +42,12 @@ import { tiebreakScore } from './engine/tiebreak.js'
 import { applyAmendment } from './engine/amendment.js'
 import { shuffle, drawFromDeck } from './engine/deck.js'
 
-const PERFORMANCE_NUMBERS = performanceCards.map((c) => c.n)
-const SETTLEMENT_NUMBERS = settlementCards.map((c) => c.n)
-const SCANDAL_NUMBERS = scandalCards.map((c) => c.n)
-const findCard = (cards, n) => cards.find((c) => c.n === n)
+// data/cards.js numbers cards by array position, not a separate id field -
+// a "card number" everywhere below is just an index into these arrays.
+const { performance: performanceCards, settlement: settlementCards, scandal: scandalCards } = cardData
+const PERFORMANCE_NUMBERS = performanceCards.map((_, i) => i)
+const SETTLEMENT_NUMBERS = settlementCards.map((_, i) => i)
+const SCANDAL_NUMBERS = scandalCards.map((_, i) => i)
 
 const gameRef = (roomCode) => doc(db, 'games', roomCode)
 const playerRef = (roomCode, uid) => doc(db, 'games', roomCode, 'players', uid)
@@ -379,13 +381,13 @@ export async function adjustPlayerStat(roomCode, uid, field, delta) {
 }
 
 export function getCardText(resultType, cardNumber) {
-    if (resultType === 'settlement') return findCard(settlementCards, cardNumber)?.text
-    if (resultType === 'scandal') return findCard(scandalCards, cardNumber)?.text
+    if (resultType === 'settlement') return settlementCards[cardNumber]
+    if (resultType === 'scandal') return scandalCards[cardNumber]
     return undefined
 }
 
 export function getPerformanceCardText(cardNumber) {
-    return findCard(performanceCards, cardNumber)?.text
+    return performanceCards[cardNumber]
 }
 
 // Pays levy + tax and advances the turn order as one atomic, idempotent

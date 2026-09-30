@@ -2,7 +2,7 @@
   "name": "pseudodemocracy-build",
   "private": true,
   "type": "module",
-  "description": "Standalone tool that generates Pseudodemocracy_Rules.docx from game_data.js/articles.js. Not part of the website's build - run `node build_rulebook.js` from this folder after `npm install`.",
+  "description": "Standalone tool that generates Pseudodemocracy_Rules.docx from ../data/game_data.js and ../data/articles.js. Not part of the website's build - run `node build_rulebook.js` from this folder after `npm install`.",
   "scripts": {
     "build": "node build_rulebook.js"
   },

@@ -9,7 +9,7 @@ export default [
     ['Tax', `Tax: __${V.taxRate}%__ of income goes to __the treasury__ every __round__.`],
     ['Levy', `__Every__ __player__ __pays__ a levy of __${V.levy.start}__ __PSD__ to __the treasury__ every round, regardless of income. The levy must stay within the levy band.`],
     ['Levy Band', `__The Leader__ sets the levy between ${V.levy.bandLow} and ${V.levy.bandHigh} PSD.`],
-    ['Levy Band Shift', `When a term __ends__, __a__ __Leader__ below __\u2212____${V.levy.trigger}__ __popularity__ __raises__ the levy band by ${V.levy.shift} PSD, and __a__ __Leader__ __above__ __+____${V.levy.trigger}__ __popularity__ __lowers__ it by ${V.levy.shift} PSD. The band never drops below ${V.levy.floor} PSD. If the levy ends up outside the band, it moves to the closest value inside it.`],
+    ['Levy Band Shift', `When a term __ends__, __a__ __Leader__ below __−____${V.levy.trigger}__ __popularity__ __raises__ the levy band by ${V.levy.shift} PSD, and __a__ __Leader__ __above__ __+____${V.levy.trigger}__ __popularity__ __lowers__ it by ${V.levy.shift} PSD. The band never drops below ${V.levy.floor} PSD. If the levy ends up outside the band, it moves to the closest value inside it.`],
     ['Malpractice', `An out-of-sync hand is a null vote and a __${V.malpracticeFine}__ PSD fine, paid to __the treasury__.`],
   ] },
   { chapter: 'Chapter II — Unions', articles: [

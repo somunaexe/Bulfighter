@@ -27,14 +27,17 @@ const V = {
 
   // Cards: after a Performance card, draw a Result card
   goodCard: 'Settlement', badCard: 'Scandal',
+  corruption: { limit: 3, pop: 30, fine: 200, wait: 3 },   // corruption markers (card glossary)
 
   // Votes
   discussionMinutes: 1, malpracticeFine: 25,                // fine is an article
+  amendVote: 1,                                             // +1 / -1 per vote deciding whether an amendment stands (see articles.js/CHANGES.md)
   amendPenalty: 100,                                        // failed amendment check
-  // Base swing per current number of active players - used for BOTH
-  // performance votes and the amendment vote. Each vote for/against an
-  // amendment moves the Leader's popularity by one swing; a performance
-  // vote's good/bad consensus moves it by one swing in that direction.
+  // Base swing per current number of active players - used for performance
+  // votes (good/bad consensus) AND to size the Leader's popularity swing
+  // from an amendment vote (the vote's for/against COUNT still decides
+  // whether the amendment stands - amendVote above - this swing only
+  // scales the resulting popularity change).
   swing: [['3', 10], ['4', 7], ['5', 6], ['6', 5], ['7', 4], ['8–10', 3], ['11+', 1]],
 
   // Health
@@ -74,8 +77,4 @@ const notesList = (notes) => {
 // Converted from CommonJS (module.exports/require) to a plain ES module so
 // the Bulfighter website can `import` this file directly in the browser -
 // `module`/`require` only exist in Node, not in a browser/Vite context.
-// This is still the exact same data, just exposed differently;
-// build_rulebook.js (Node, not the browser) was updated to `import` this
-// instead of `require`-ing it, so both the site and the doc generator read
-// this one file.
 export { V, fmt, ord, notesList };
