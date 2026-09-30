@@ -5,7 +5,7 @@ import { canAttemptCoup, COUP_COST, COUP_GAP } from '../engine/coup.js'
 // Coups can happen "at any point during any term" per the locked coup
 // rule, so this panel shows whenever there's a sitting Leader who isn't
 // the current player - regardless of what phase the round is in.
-const CoupPanel = ({ roomCode, me, leader }) => {
+const CoupPanel = ({ roomCode, me, leader, players }) => {
     const [busy, setBusy] = useState(false)
     const [message, setMessage] = useState('')
 
@@ -21,7 +21,7 @@ const CoupPanel = ({ roomCode, me, leader }) => {
     const handleCoup = async () => {
         setBusy(true)
         try {
-            const result = await attemptCoup(roomCode, me.uid)
+            const result = await attemptCoup(roomCode, me.uid, players)
             setMessage(result.success ? 'Coup successful - you are the new Leader!' : 'Coup failed.')
         } finally {
             setBusy(false)

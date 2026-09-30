@@ -16,7 +16,7 @@ const TermEndPanel = ({ roomCode, game, players }) => {
                 onClick={async () => {
                     setBusy(true)
                     try {
-                        await endTerm(roomCode)
+                        await endTerm(roomCode, players)
                     } finally {
                         setBusy(false)
                     }

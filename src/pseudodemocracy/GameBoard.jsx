@@ -3,6 +3,7 @@ import { auth } from './firebase.js'
 import { subscribeToRound, advancePhaseAfterInauguration, midTermThreshold } from './gameEngine.js'
 import Scoreboard from './game/Scoreboard.jsx'
 import CoupPanel from './game/CoupPanel.jsx'
+import CorruptionPanel from './game/CorruptionPanel.jsx'
 import ExamPanel from './game/ExamPanel.jsx'
 import VotePanel from './game/VotePanel.jsx'
 import RoleDrawPanel from './game/RoleDrawPanel.jsx'
@@ -80,7 +81,8 @@ const GameBoard = ({ roomCode, room: game, players }) => {
     return (
         <div>
             <Scoreboard players={players} leaderUid={game.leaderUid} />
-            <CoupPanel roomCode={roomCode} me={me} leader={leader} />
+            <CoupPanel roomCode={roomCode} me={me} leader={leader} players={players} />
+            <CorruptionPanel roomCode={roomCode} me={me} />
             {renderPhase()}
         </div>
     )
