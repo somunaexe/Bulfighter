@@ -110,9 +110,10 @@ const Pseudodemocracy = () => {
                         <p className="text-white-600">
                             Three windows per term (Inauguration, Mid-term, Farewell). Only the <span className="font-semibold text-[rgb(var(--theme-accent))]">highlighted</span> words
                             in an article can change, one word for one word. Everyone except the Leader votes right
-                            after: +{V.amendVote} popularity per vote for, -{V.amendVote} per vote against. A failed
-                            amendment (ungrammatical, or more than just the highlighted words changed) reverts and
-                            costs the Leader {V.amendPenalty} PSD.
+                            after: each vote for or against moves the Leader&apos;s popularity by the base swing for
+                            the current table size (same swing table as performance votes). A failed amendment
+                            (ungrammatical, or more than just the highlighted words changed) reverts and costs the
+                            Leader {V.amendPenalty} PSD.
                         </p>
                     </div>
                 </div>

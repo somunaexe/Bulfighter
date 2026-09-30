@@ -30,8 +30,11 @@ const V = {
 
   // Votes
   discussionMinutes: 1, malpracticeFine: 25,                // fine is an article
-  amendVote: 1,                                             // +1 / -1 per vote
   amendPenalty: 100,                                        // failed amendment check
+  // Base swing per current number of active players - used for BOTH
+  // performance votes and the amendment vote. Each vote for/against an
+  // amendment moves the Leader's popularity by one swing; a performance
+  // vote's good/bad consensus moves it by one swing in that direction.
   swing: [['3', 10], ['4', 7], ['5', 6], ['6', 5], ['7', 4], ['8–10', 3], ['11+', 1]],
 
   // Health

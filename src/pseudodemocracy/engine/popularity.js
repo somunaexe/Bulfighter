@@ -26,9 +26,12 @@ export function swingForPlayerCount(playerCount) {
 }
 
 // Amendment votes: everyone except the Leader votes for/against right after
-// an amendment. +amendVote popularity per vote for, -amendVote per against.
-export function applyAmendmentVotes(currentPopularity, votesFor, votesAgainst) {
-    const delta = (votesFor - votesAgainst) * V.amendVote
+// an amendment. Each vote moves popularity by one base swing for the
+// current player count - the same table performance votes use (updated
+// 2026-09-30; this used to be a flat +1/-1 per vote regardless of table size).
+export function applyAmendmentVotes(currentPopularity, votesFor, votesAgainst, playerCount) {
+    const swing = swingForPlayerCount(playerCount)
+    const delta = (votesFor - votesAgainst) * swing
     return clampPopularity(currentPopularity + delta)
 }
 

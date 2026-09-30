@@ -118,7 +118,7 @@ const PendingRuling = ({ roomCode, game, window }) => {
     )
 }
 
-const AmendmentVote = ({ roomCode, game, window }) => {
+const AmendmentVote = ({ roomCode, game, window, playerCount }) => {
     const [forVotes, setForVotes] = useState(0)
     const [againstVotes, setAgainstVotes] = useState(0)
     const isDictator = game.leaderType === 'Dictator'
@@ -126,7 +126,8 @@ const AmendmentVote = ({ roomCode, game, window }) => {
         <div className="surface-card p-6 mb-6">
             <p className="font-semibold text-white-800 mb-1">Amendment vote</p>
             <p className="text-white-600 text-sm mb-4">
-                Everyone except the Leader votes, no discussion - it always moves their popularity.{' '}
+                Everyone except the Leader votes, no discussion - each vote moves their popularity by the base swing
+                for {playerCount} players.{' '}
                 {isDictator
                     ? 'As Dictator, the wording stands either way.'
                     : 'As President, the wording only stands if more voted for than against.'}{' '}
@@ -141,7 +142,7 @@ const AmendmentVote = ({ roomCode, game, window }) => {
                 </label>
             </div>
             <button
-                onClick={() => castAmendmentVoteOutcome(roomCode, window, forVotes, againstVotes)}
+                onClick={() => castAmendmentVoteOutcome(roomCode, window, forVotes, againstVotes, playerCount)}
                 className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors"
             >
                 Submit vote result
@@ -150,11 +151,12 @@ const AmendmentVote = ({ roomCode, game, window }) => {
     )
 }
 
-const AmendmentPanel = ({ roomCode, game, me, window }) => {
+const AmendmentPanel = ({ roomCode, game, me, window, players }) => {
     const isLeader = me.uid === game.leaderUid
+    const playerCount = players.filter((p) => !p.eliminated).length
 
     if (game.pendingAmendment?.awaitingVote) {
-        return <AmendmentVote roomCode={roomCode} game={game} window={window} />
+        return <AmendmentVote roomCode={roomCode} game={game} window={window} playerCount={playerCount} />
     }
     if (game.pendingAmendment) {
         return <PendingRuling roomCode={roomCode} game={game} window={window} />

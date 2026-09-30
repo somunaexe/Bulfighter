@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { payLevyAndTax, completeTurn, advanceToFarewell } from '../gameEngine.js'
+import { payTaxAndCompleteTurn, advanceToFarewell } from '../gameEngine.js'
 
 // A "turn" here is a placeholder for Phase 2b's performance-card deck -
 // for now a player just declares their income for the term (from whatever
@@ -49,8 +49,7 @@ const TurnsPanel = ({ roomCode, game, me, players }) => {
                             onClick={async () => {
                                 setBusy(true)
                                 try {
-                                    await payLevyAndTax(roomCode, me.uid, income)
-                                    await completeTurn(roomCode, me.uid)
+                                    await payTaxAndCompleteTurn(roomCode, me.uid, income)
                                 } finally {
                                     setBusy(false)
                                 }

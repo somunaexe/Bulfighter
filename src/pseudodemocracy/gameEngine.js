@@ -227,13 +227,13 @@ export async function ruleAmendment(roomCode, window, passesGrammar) {
 // Whether the new wording actually takes effect differs: a Dictator's
 // amendment stands regardless of the vote; a President's only stands if
 // more voted for than against.
-export async function castAmendmentVoteOutcome(roomCode, window, votesFor, votesAgainst) {
+export async function castAmendmentVoteOutcome(roomCode, window, votesFor, votesAgainst, playerCount) {
     await runTransaction(db, async (tx) => {
         const game = (await tx.get(gameRef(roomCode))).data()
         const pending = game.pendingAmendment
         if (!pending) return
         const leader = (await tx.get(playerRef(roomCode, game.leaderUid))).data()
-        const newPopularity = applyAmendmentVotes(leader.popularity, votesFor, votesAgainst)
+        const newPopularity = applyAmendmentVotes(leader.popularity, votesFor, votesAgainst, playerCount)
         tx.update(playerRef(roomCode, game.leaderUid), { popularity: newPopularity })
 
         const stands = game.leaderType === 'Dictator' || votesFor > votesAgainst
@@ -278,22 +278,29 @@ export async function setLevy(roomCode, amount) {
     return clamped
 }
 
-export async function payLevyAndTax(roomCode, uid, incomeThisTurn) {
+// Pays levy + tax and advances the turn order as one atomic, idempotent
+// step. These used to be two separate calls (payLevyAndTax then
+// completeTurn) - if a player's "end my turn" click fired twice (a fast
+// double-click, or a click landing before the button had visually
+// disabled), completeTurn ran twice and advanced currentTurnIndex by 2
+// instead of 1, silently skipping the next player. Guarding on
+// turnsCompletedUids already containing this uid makes a second call a
+// no-op instead of a double-advance.
+export async function payTaxAndCompleteTurn(roomCode, uid, incomeThisTurn) {
     await runTransaction(db, async (tx) => {
         const game = (await tx.get(gameRef(roomCode))).data()
+        if (game.turnsCompletedUids.includes(uid)) return // already completed - ignore a duplicate call
+
         const player = (await tx.get(playerRef(roomCode, uid))).data()
         const tax = Math.round((incomeThisTurn * game.rules.taxRate) / 100)
         const total = game.levy.amount + tax
         tx.update(playerRef(roomCode, uid), { psd: player.psd + incomeThisTurn - total })
-        tx.update(gameRef(roomCode), { treasury: game.treasury + total })
+        tx.update(gameRef(roomCode), {
+            treasury: game.treasury + total,
+            turnsCompletedUids: [...game.turnsCompletedUids, uid],
+            currentTurnIndex: game.currentTurnIndex + 1,
+        })
     })
-}
-
-export async function completeTurn(roomCode, uid) {
-    const game = (await getDoc(gameRef(roomCode))).data()
-    const turnsCompletedUids = [...game.turnsCompletedUids, uid]
-    const nextIndex = game.currentTurnIndex + 1
-    await updateDoc(gameRef(roomCode), { turnsCompletedUids, currentTurnIndex: nextIndex })
 }
 
 export async function advanceToFarewell(roomCode) {
