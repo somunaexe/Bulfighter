@@ -474,9 +474,20 @@ export async function payOffCorruption(roomCode, uid) {
 }
 
 export function getCardText(resultType, cardNumber) {
-    if (resultType === 'settlement') return settlementCards[cardNumber]
-    if (resultType === 'scandal') return scandalCards[cardNumber]
+    if (resultType === 'settlement') return settlementCards[cardNumber]?.text
+    if (resultType === 'scandal') return scandalCards[cardNumber]?.text
     return undefined
+}
+
+// Structured, unapplied reference for a Result card's numbers - see
+// data/cards.js's `card()`/`pop()`/`psd()`/`corruption()` helpers for the
+// schema and why most cards still come back with no operations attached.
+// Nothing calls this yet; adjustPlayerStat/addCorruptionMarker below are
+// still how the table actually applies a card, by hand, every time.
+export function getCardEffects(resultType, cardNumber) {
+    if (resultType === 'settlement') return settlementCards[cardNumber]?.effects || []
+    if (resultType === 'scandal') return scandalCards[cardNumber]?.effects || []
+    return []
 }
 
 // ---------------------------------------------------------------
