@@ -41,6 +41,7 @@ import { shiftLevyBand, clampLevyToBand } from './engine/levy.js'
 import { tiebreakScore } from './engine/tiebreak.js'
 import { applyAmendment } from './engine/amendment.js'
 import { shuffle, drawFromDeck } from './engine/deck.js'
+import { shouldFreeze, canWaitOut } from './engine/corruption.js'
 
 // data/cards.js numbers cards by array position, not a separate id field -
 // a "card number" everywhere below is just an index into these arrays.
@@ -104,6 +105,9 @@ export async function initializeActiveGame(roomCode, playerUids) {
                 examPassedThisRound: true,
                 coupCards: 0,
                 roundsAsLeader: 0,
+                corruptionMarkers: 0,
+                frozen: false,
+                frozenSinceRound: null,
             })
         }
         tx.set(roundRef(roomCode, 1), { leaderUid: null, questions: [], answers: {}, revealed: true, votes: {} })
@@ -347,6 +351,17 @@ export async function resolvePerformanceVote(roomCode, playerCount) {
         tx.update(playerRef(roomCode, current.performerUid), { popularity: newPopularity })
 
         const resultType = goodVotes > badVotes ? 'settlement' : 'scandal'
+
+        // A frozen player (3 corruption markers) can't pick Settlement/
+        // {GOOD} cards - the vote and its popularity swing still happen,
+        // but no card is drawn.
+        if (resultType === 'settlement' && performer.frozen) {
+            tx.update(gameRef(roomCode), {
+                currentPerformance: { ...current, resolved: true, resultType: 'settlement-blocked' },
+            })
+            return
+        }
+
         const deckKey = resultType === 'settlement' ? 'settlementDeck' : 'scandalDeck'
         const indexKey = resultType === 'settlement' ? 'settlementDrawIndex' : 'scandalDrawIndex'
         const allNumbers = resultType === 'settlement' ? SETTLEMENT_NUMBERS : SCANDAL_NUMBERS
@@ -377,6 +392,50 @@ export async function adjustPlayerStat(roomCode, uid, field, delta) {
     await runTransaction(db, async (tx) => {
         const player = (await tx.get(playerRef(roomCode, uid))).data()
         tx.update(playerRef(roomCode, uid), { popularity: clampPopularity(player.popularity + delta) })
+    })
+}
+
+// ---------------------------------------------------------------
+// Corruption markers - a card grants one; on the limit-th (3rd) marker
+// the player is frozen (roles frozen, can't pick Settlement cards - see
+// resolvePerformanceVote above) and loses V.corruption.pop popularity
+// once. Freeze lifts by paying V.corruption.fine PSD (restores
+// everything) via payOffCorruption, or automatically after
+// V.corruption.wait terms via the check inside endTerm below (popularity
+// drop stays; roles are "gone for good" - there's no non-Leader role
+// system built yet to actually revoke, so that part is on the table).
+// ---------------------------------------------------------------
+export async function addCorruptionMarker(roomCode, uid) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const player = (await tx.get(playerRef(roomCode, uid))).data()
+        const nextMarkers = (player.corruptionMarkers || 0) + 1
+
+        if (!player.frozen && shouldFreeze(nextMarkers, V.corruption.limit)) {
+            tx.update(playerRef(roomCode, uid), {
+                corruptionMarkers: 0,
+                frozen: true,
+                frozenSinceRound: game.round,
+                popularity: clampPopularity(player.popularity - V.corruption.pop),
+            })
+        } else {
+            tx.update(playerRef(roomCode, uid), { corruptionMarkers: nextMarkers })
+        }
+    })
+}
+
+export async function payOffCorruption(roomCode, uid) {
+    await runTransaction(db, async (tx) => {
+        const game = (await tx.get(gameRef(roomCode))).data()
+        const player = (await tx.get(playerRef(roomCode, uid))).data()
+        if (!player.frozen) return
+        tx.update(playerRef(roomCode, uid), {
+            psd: player.psd - V.corruption.fine,
+            frozen: false,
+            frozenSinceRound: null,
+            popularity: clampPopularity(player.popularity + V.corruption.pop),
+        })
+        tx.update(gameRef(roomCode), { treasury: game.treasury + V.corruption.fine })
     })
 }
 
@@ -424,7 +483,7 @@ export async function advanceToFarewell(roomCode) {
 // game_data.js's coupCost/coupGap - never anything from `rules` or
 // `constitution`, which hold the amendable state.
 // ---------------------------------------------------------------
-export async function attemptCoup(roomCode, challengerUid) {
+export async function attemptCoup(roomCode, challengerUid, players) {
     return runTransaction(db, async (tx) => {
         const game = (await tx.get(gameRef(roomCode))).data()
         const challenger = (await tx.get(playerRef(roomCode, challengerUid))).data()
@@ -437,6 +496,15 @@ export async function attemptCoup(roomCode, challengerUid) {
             leaderPopularity: leader.popularity,
         })
         if (!eligible) return { success: false }
+
+        // A coup ends the current term abruptly, so it also ticks a
+        // frozen player's "wait it out" clock, same as endTerm.
+        const nextRound = game.round + 1
+        for (const p of players) {
+            if (p.frozen && canWaitOut(p.frozenSinceRound, nextRound, V.corruption.wait)) {
+                tx.update(playerRef(roomCode, p.uid), { frozen: false, frozenSinceRound: null })
+            }
+        }
 
         // Couped Leader scores half a round instead of a full one.
         tx.update(playerRef(roomCode, game.leaderUid), { roundsAsLeader: (leader.roundsAsLeader || 0) + 0.5 })
@@ -474,12 +542,22 @@ export async function attemptCoup(roomCode, challengerUid) {
 // Term end - award the round to the sitting Leader, shift the levy band
 // off their popularity, then start the next round's exam.
 // ---------------------------------------------------------------
-export async function endTerm(roomCode) {
+export async function endTerm(roomCode, players) {
     await runTransaction(db, async (tx) => {
         const game = (await tx.get(gameRef(roomCode))).data()
         const leader = (await tx.get(playerRef(roomCode, game.leaderUid))).data()
 
         tx.update(playerRef(roomCode, game.leaderUid), { roundsAsLeader: (leader.roundsAsLeader || 0) + 1 })
+
+        // A term just ended, so this is when a frozen player's "wait it
+        // out" clock ticks - lift the freeze once they've waited long
+        // enough, per player, without refunding the popularity they lost.
+        const nextRound = game.round + 1
+        for (const p of players) {
+            if (p.frozen && canWaitOut(p.frozenSinceRound, nextRound, V.corruption.wait)) {
+                tx.update(playerRef(roomCode, p.uid), { frozen: false, frozenSinceRound: null })
+            }
+        }
 
         const nextBand = shiftLevyBand(
             { low: game.levy.bandLow, high: game.levy.bandHigh },

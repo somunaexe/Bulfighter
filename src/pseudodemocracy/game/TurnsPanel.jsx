@@ -7,6 +7,7 @@ import {
     resolvePerformanceVote,
     clearPerformance,
     adjustPlayerStat,
+    addCorruptionMarker,
     getCardText,
     getPerformanceCardText,
 } from '../gameEngine.js'
@@ -35,6 +36,9 @@ const AdjustStat = ({ roomCode, players }) => {
             />
             <button onClick={() => adjustPlayerStat(roomCode, uid, field, delta)} className="field-btn">
                 Apply
+            </button>
+            <button onClick={() => addCorruptionMarker(roomCode, uid)} className="field-btn">
+                + Corruption marker
             </button>
         </div>
     )
@@ -87,12 +91,23 @@ const PerformancePanel = ({ roomCode, game, me, players, performer, activeOrder 
         )
     }
 
+    const resultLabel = {
+        tie: 'Tied vote - no change',
+        settlement: 'Settlement card',
+        scandal: 'Scandal card',
+        'settlement-blocked': `${performer.name} is frozen - no Settlement card`,
+    }[current.resultType]
+
     return (
         <div className="surface-card p-6 mb-6">
-            <p className="font-semibold text-white-800 mb-1">
-                {current.resultType === 'tie' ? 'Tied vote - no change' : current.resultType === 'settlement' ? 'Settlement card' : 'Scandal card'}
-            </p>
-            {current.resultType !== 'tie' && (
+            <p className="font-semibold text-white-800 mb-1">{resultLabel}</p>
+            {current.resultType === 'settlement-blocked' && (
+                <p className="text-white-600 mb-4">
+                    The vote was good, but {performer.name} has 3 corruption markers and can&apos;t pick Settlement
+                    cards while frozen - the popularity swing still applied, just no card.
+                </p>
+            )}
+            {(current.resultType === 'settlement' || current.resultType === 'scandal') && (
                 <p className="text-white-800 mb-4 italic">&quot;{getCardText(current.resultType, current.resultCardNumber)}&quot;</p>
             )}
             <p className="text-white-600 text-sm mb-1">

@@ -10,9 +10,11 @@ const Scoreboard = ({ players, leaderUid }) => (
                         {p.name}
                         {p.uid === leaderUid && <span className="text-[rgb(var(--theme-accent))] font-semibold"> (Leader)</span>}
                         {isCancelled(p.popularity || 0) && <span className="text-red-500"> CANCELLED</span>}
+                        {p.frozen && <span className="text-red-500"> FROZEN</span>}
                     </span>
                     <span>
                         {p.roundsAsLeader || 0} rounds &middot; {p.psd ?? 0} PSD &middot; {p.popularity ?? 0} pop
+                        {p.corruptionMarkers > 0 && <> &middot; {p.corruptionMarkers} corruption marker{p.corruptionMarkers === 1 ? '' : 's'}</>}
                     </span>
                 </div>
             ))}
