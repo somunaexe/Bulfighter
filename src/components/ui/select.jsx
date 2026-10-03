@@ -1,14 +1,16 @@
 import { forwardRef } from 'react'
 import * as SelectPrimitive from '@radix-ui/react-select'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { cn } from '../../lib/utils.js'
 
 // shadcn/ui's Select shape (Radix primitives for the accessible behavior -
 // keyboard nav, focus handling, portal/positioning), styled with this
-// site's existing select look (border-black-300, bg-transparent) and
-// animated open/close via Framer Motion instead of Radix's default CSS
-// data-state animation, since forceMount + AnimatePresence is what lets
-// an exit transition play before the content actually unmounts.
+// site's existing select look (border-black-300, bg-transparent). The
+// content only animates in (via initial/animate on mount) - Radix mounts
+// and unmounts Content itself based on open state, which is what makes
+// clicking the trigger actually work; a forceMount + AnimatePresence
+// version would need its own controlled open state to animate the close
+// without leaving Content permanently (and invisibly) in the DOM.
 const Select = SelectPrimitive.Root
 const SelectGroup = SelectPrimitive.Group
 const SelectValue = SelectPrimitive.Value
@@ -44,30 +46,25 @@ SelectTrigger.displayName = 'SelectTrigger'
 
 const SelectContent = forwardRef(({ className, children, position = 'popper', ...props }, ref) => (
     <SelectPrimitive.Portal>
-        <AnimatePresence>
-            <SelectPrimitive.Content
-                ref={ref}
-                asChild
-                forceMount
-                position={position}
-                sideOffset={4}
-                className={cn(position === 'popper' && 'min-w-[var(--radix-select-trigger-width)]')}
-                {...props}
+        <SelectPrimitive.Content
+            ref={ref}
+            position={position}
+            sideOffset={4}
+            className={cn(
+                'z-50 overflow-hidden rounded-md border border-black-300 bg-black-500 text-white-800 shadow-lg p-1',
+                position === 'popper' && 'min-w-[var(--radix-select-trigger-width)]',
+                className
+            )}
+            {...props}
+        >
+            <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.12 }}
             >
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.96, y: -4 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.96, y: -4 }}
-                    transition={{ duration: 0.12 }}
-                    className={cn(
-                        'z-50 overflow-hidden rounded-md border border-black-300 bg-black-500 text-white-800 shadow-lg p-1',
-                        className
-                    )}
-                >
-                    <SelectPrimitive.Viewport>{children}</SelectPrimitive.Viewport>
-                </motion.div>
-            </SelectPrimitive.Content>
-        </AnimatePresence>
+                <SelectPrimitive.Viewport>{children}</SelectPrimitive.Viewport>
+            </motion.div>
+        </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
 ))
 SelectContent.displayName = 'SelectContent'
