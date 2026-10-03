@@ -14,6 +14,8 @@ import {
     getCardText,
     getPerformanceCardText,
 } from '../gameEngine.js'
+import { Button } from '../../components/ui/button.jsx'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select.jsx'
 
 const AdjustStat = ({ roomCode, players }) => {
     const [uid, setUid] = useState(players[0]?.uid)
@@ -22,16 +24,22 @@ const AdjustStat = ({ roomCode, players }) => {
     const [role, setRole] = useState(ROLE_OPTIONS[0])
     return (
         <div className="flex flex-wrap items-center gap-2 mt-3">
-            <select value={uid} onChange={(e) => setUid(e.target.value)} className="px-2 py-1 rounded border border-black-300 bg-transparent">
-                {players.map((p) => (
-                    <option key={p.uid} value={p.uid}>{p.name}</option>
-                ))}
-            </select>
-            <select value={field} onChange={(e) => setField(e.target.value)} className="px-2 py-1 rounded border border-black-300 bg-transparent">
-                <option value="psd">PSD</option>
-                <option value="popularity">Popularity</option>
-                <option value="roundsAsLeader">Rounds as Leader (e.g. Vice's 0.5)</option>
-            </select>
+            <Select value={uid} onValueChange={setUid}>
+                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                    {players.map((p) => (
+                        <SelectItem key={p.uid} value={p.uid}>{p.name}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Select value={field} onValueChange={setField}>
+                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="psd">PSD</SelectItem>
+                    <SelectItem value="popularity">Popularity</SelectItem>
+                    <SelectItem value="roundsAsLeader">Rounds as Leader (e.g. Vice&apos;s 0.5)</SelectItem>
+                </SelectContent>
+            </Select>
             <input
                 type="number"
                 step="0.5"
@@ -40,23 +48,26 @@ const AdjustStat = ({ roomCode, players }) => {
                 className="w-24 px-2 py-1 rounded border border-black-300 bg-transparent"
                 placeholder="+/- amount"
             />
-            <button onClick={() => adjustPlayerStat(roomCode, uid, field, delta)} className="field-btn">
+            <Button size="sm" onClick={() => adjustPlayerStat(roomCode, uid, field, delta)}>
                 Apply
-            </button>
-            <button onClick={() => addCorruptionMarker(roomCode, uid)} className="field-btn">
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => addCorruptionMarker(roomCode, uid)}>
                 + Corruption marker
-            </button>
-            <select value={role} onChange={(e) => setRole(e.target.value)} className="px-2 py-1 rounded border border-black-300 bg-transparent">
-                {ROLE_OPTIONS.map((r) => (
-                    <option key={r} value={r}>{r}</option>
-                ))}
-            </select>
-            <button onClick={() => grantRole(roomCode, uid, role)} className="field-btn">
+            </Button>
+            <Select value={role} onValueChange={setRole}>
+                <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                    {ROLE_OPTIONS.map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" onClick={() => grantRole(roomCode, uid, role)}>
                 + Role
-            </button>
-            <button onClick={() => revokeRole(roomCode, uid, role)} className="field-btn">
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => revokeRole(roomCode, uid, role)}>
                 - Role
-            </button>
+            </Button>
         </div>
     )
 }
