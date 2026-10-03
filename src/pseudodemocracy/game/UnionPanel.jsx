@@ -8,8 +8,8 @@ import {
     confrontLeader,
     commandPerformance,
 } from '../gameEngine.js'
-
-const selectClass = 'px-2 py-1 rounded border border-black-300 bg-transparent'
+import { Button } from '../../components/ui/button.jsx'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select.jsx'
 
 const FoundUnion = ({ roomCode, me }) => {
     const [type, setType] = useState('activist')
@@ -18,13 +18,16 @@ const FoundUnion = ({ roomCode, me }) => {
             <p className="font-semibold text-white-800">Found a union</p>
             <p className="text-white-600 text-sm mt-1">Played from a card that says so - you become its Unionizer (Activist) or Capon (Agbero).</p>
             <div className="flex items-center gap-2 mt-3">
-                <select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>
-                    <option value="activist">Activist</option>
-                    <option value="agbero">Agbero</option>
-                </select>
-                <button onClick={() => foundUnion(roomCode, me.uid, type)} className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors">
+                <Select value={type} onValueChange={setType}>
+                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="activist">Activist</SelectItem>
+                        <SelectItem value="agbero">Agbero</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Button onClick={() => foundUnion(roomCode, me.uid, type)}>
                     Found union
-                </button>
+                </Button>
             </div>
         </div>
     )
@@ -67,30 +70,33 @@ const UnionControls = ({ roomCode, union, me, players, leaderUid, isMyActionTurn
                 </p>
             )}
             <div className="flex flex-wrap items-center gap-2 mt-3">
-                <button onClick={() => leaveUnion(roomCode, union.id, me.uid)} className="field-btn">
+                <Button variant="outline" onClick={() => leaveUnion(roomCode, union.id, me.uid)}>
                     Leave
-                </button>
+                </Button>
                 {isUnionizer && (
-                    <button onClick={() => disperseUnion(roomCode, union.id)} className="field-btn">
+                    <Button variant="destructive" onClick={() => disperseUnion(roomCode, union.id)}>
                         Disperse
-                    </button>
+                    </Button>
                 )}
             </div>
             {isUnionizer && isMyActionTurn && (
                 <>
                     <div className="flex flex-wrap items-center gap-2 mt-3">
-                        <select value={recruitUid} onChange={(e) => setRecruitUid(e.target.value)} className={selectClass}>
-                            {nonMembers.map((p) => (
-                                <option key={p.uid} value={p.uid}>{p.name}</option>
-                            ))}
-                        </select>
-                        <button onClick={() => recruitMember(roomCode, union.id, recruitUid)} className="field-btn" disabled={!recruitUid}>
+                        <Select value={recruitUid} onValueChange={setRecruitUid}>
+                            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                {nonMembers.map((p) => (
+                                    <SelectItem key={p.uid} value={p.uid}>{p.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Button onClick={() => recruitMember(roomCode, union.id, recruitUid)} disabled={!recruitUid}>
                             Recruit
-                        </button>
+                        </Button>
                         {union.memberUids.filter((u) => u !== me.uid).map((uid) => (
-                            <button key={uid} onClick={() => kickMember(roomCode, union.id, uid)} className="field-btn">
+                            <Button key={uid} variant="destructive" onClick={() => kickMember(roomCode, union.id, uid)}>
                                 Kick {players.find((p) => p.uid === uid)?.name}
-                            </button>
+                            </Button>
                         ))}
                     </div>
                     {leaderIsMember && (
@@ -107,15 +113,18 @@ const UnionControls = ({ roomCode, union, me, players, leaderUid, isMyActionTurn
                             className="flex-1 min-w-[16rem] px-3 py-2 rounded-md bg-transparent border border-black-300"
                         />
                         {leaderIsMember && (
-                            <select value={rivalUid} onChange={(e) => setRivalUid(e.target.value)} className={selectClass}>
-                                {rivalOptions.map((p) => (
-                                    <option key={p.uid} value={p.uid}>{p.name}</option>
-                                ))}
-                            </select>
+                            <Select value={rivalUid} onValueChange={setRivalUid}>
+                                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    {rivalOptions.map((p) => (
+                                        <SelectItem key={p.uid} value={p.uid}>{p.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         )}
-                        <button onClick={handleCommand} disabled={!scenario || (leaderIsMember && !rivalUid)} className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors">
+                        <Button onClick={handleCommand} disabled={!scenario || (leaderIsMember && !rivalUid)}>
                             Command Performance
-                        </button>
+                        </Button>
                     </div>
                     {error && <p className="text-red-500 mt-2">{error}</p>}
                 </>
@@ -144,13 +153,16 @@ const ConfrontPanel = ({ roomCode, union, me, players, leaderUid }) => {
             </p>
             <div className="flex flex-wrap items-center gap-2 mt-3">
                 {leaderIsMember && (
-                    <select value={rivalUid} onChange={(e) => setRivalUid(e.target.value)} className={selectClass}>
-                        {rivalOptions.map((p) => (
-                            <option key={p.uid} value={p.uid}>{p.name}</option>
-                        ))}
-                    </select>
+                    <Select value={rivalUid} onValueChange={setRivalUid}>
+                        <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            {rivalOptions.map((p) => (
+                                <SelectItem key={p.uid} value={p.uid}>{p.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 )}
-                <button
+                <Button
                     onClick={async () => {
                         setError('')
                         try {
@@ -160,10 +172,9 @@ const ConfrontPanel = ({ roomCode, union, me, players, leaderUid }) => {
                         }
                     }}
                     disabled={leaderIsMember && !rivalUid}
-                    className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors"
                 >
                     Confront the Leader
-                </button>
+                </Button>
             </div>
             {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>

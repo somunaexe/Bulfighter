@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { endTerm } from '../gameEngine.js'
+import { Button } from '../../components/ui/button.jsx'
 
 const TermEndPanel = ({ roomCode, game, players }) => {
     const [busy, setBusy] = useState(false)
@@ -12,7 +13,7 @@ const TermEndPanel = ({ roomCode, game, players }) => {
                 {leader?.name} served a full round as Leader ({leader?.popularity ?? 0} popularity at term end - the
                 levy band will shift based on that).
             </p>
-            <button
+            <Button
                 onClick={async () => {
                     setBusy(true)
                     try {
@@ -22,10 +23,9 @@ const TermEndPanel = ({ roomCode, game, players }) => {
                     }
                 }}
                 disabled={busy}
-                className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors disabled:opacity-50"
             >
                 Start next round
-            </button>
+            </Button>
         </div>
     )
 }

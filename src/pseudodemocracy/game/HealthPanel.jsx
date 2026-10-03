@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { sicken, offerHeal, rejectHeal, guessSabotage, acceptHeal, clearPrescription } from '../gameEngine.js'
 import { V } from '../psdData.js'
-
-const selectClass = 'px-2 py-1 rounded border border-black-300 bg-transparent'
+import { Button } from '../../components/ui/button.jsx'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select.jsx'
 
 const DoctorActions = ({ roomCode, me, players }) => {
     const others = players.filter((p) => p.uid !== me.uid && !p.eliminated)
@@ -52,34 +52,45 @@ const DoctorActions = ({ roomCode, me, players }) => {
                 (Poison); anyone can guess Sabotage before the patient accepts.
             </p>
             <div className="flex flex-wrap items-center gap-2 mt-3">
-                <select
+                <Select
                     value={action}
-                    onChange={(e) => {
-                        setAction(e.target.value)
+                    onValueChange={(value) => {
+                        setAction(value)
                         setPatientUid(undefined) // let eligiblePatients recompute and re-pick a default below
-                        if (e.target.value === 'sicken' && doseType === 'surgery') setDoseType('agbo')
+                        if (value === 'sicken' && doseType === 'surgery') setDoseType('agbo')
                     }}
-                    className={selectClass}
                 >
-                    <option value="sicken">Sicken</option>
-                    <option value="heal">Offer Heal</option>
-                </select>
-                <select value={patient.uid} onChange={(e) => setPatientUid(e.target.value)} className={selectClass}>
-                    {eligiblePatients.map((p) => (
-                        <option key={p.uid} value={p.uid}>{p.name}</option>
-                    ))}
-                </select>
-                <select value={doseType} onChange={(e) => setDoseType(e.target.value)} className={selectClass}>
-                    <option value="agbo">Agbo</option>
-                    <option value="concoction">Concoction</option>
-                    {action === 'heal' && <option value="surgery">Surgery</option>}
-                </select>
+                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="sicken">Sicken</SelectItem>
+                        <SelectItem value="heal">Offer Heal</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Select value={patient.uid} onValueChange={setPatientUid}>
+                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        {eligiblePatients.map((p) => (
+                            <SelectItem key={p.uid} value={p.uid}>{p.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Select value={doseType} onValueChange={setDoseType}>
+                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="agbo">Agbo</SelectItem>
+                        <SelectItem value="concoction">Concoction</SelectItem>
+                        {action === 'heal' && <SelectItem value="surgery">Surgery</SelectItem>}
+                    </SelectContent>
+                </Select>
                 {action === 'heal' && (
                     <>
-                        <select value={choice} onChange={(e) => setChoice(e.target.value)} className={selectClass}>
-                            <option value="cure">Real Cure (secret)</option>
-                            <option value="poison">Poison / Sabotage (secret)</option>
-                        </select>
+                        <Select value={choice} onValueChange={setChoice}>
+                            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="cure">Real Cure (secret)</SelectItem>
+                                <SelectItem value="poison">Poison / Sabotage (secret)</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <input
                             type="number"
                             value={price}
@@ -89,9 +100,9 @@ const DoctorActions = ({ roomCode, me, players }) => {
                         />
                     </>
                 )}
-                <button onClick={handleSubmit} className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors">
+                <Button onClick={handleSubmit}>
                     {action === 'sicken' ? 'Sicken' : 'Offer Heal'}
-                </button>
+                </Button>
             </div>
             {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
@@ -112,17 +123,17 @@ const PrescriptionPanel = ({ roomCode, game, me, players }) => {
                 </p>
                 <p className="text-white-600 text-sm mt-1">Anyone may guess Sabotage before {patient?.name} accepts.</p>
                 <div className="flex gap-3 mt-3">
-                    <button onClick={() => guessSabotage(roomCode, me.uid)} className="field-btn">
+                    <Button variant="outline" onClick={() => guessSabotage(roomCode, me.uid)}>
                         Guess Sabotage
-                    </button>
+                    </Button>
                     {isPatient && (
                         <>
-                            <button onClick={() => acceptHeal(roomCode)} className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors">
+                            <Button onClick={() => acceptHeal(roomCode)}>
                                 Accept
-                            </button>
-                            <button onClick={() => rejectHeal(roomCode)} className="field-btn">
+                            </Button>
+                            <Button variant="outline" onClick={() => rejectHeal(roomCode)}>
                                 Reject
-                            </button>
+                            </Button>
                         </>
                     )}
                 </div>
@@ -139,9 +150,9 @@ const PrescriptionPanel = ({ roomCode, game, me, players }) => {
     return (
         <div className="surface-card p-4 mb-6">
             <p className="font-semibold text-white-800">{outcomeText}</p>
-            <button onClick={() => clearPrescription(roomCode)} className="field-btn mt-3">
+            <Button className="mt-3" onClick={() => clearPrescription(roomCode)}>
                 Dismiss
-            </button>
+            </Button>
         </div>
     )
 }

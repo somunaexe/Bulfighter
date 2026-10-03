@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { payOffCorruption } from '../gameEngine.js'
 import { V } from '../psdData.js'
+import { Button } from '../../components/ui/button.jsx'
 
 // Shows only to a frozen player themselves - the two ways out (pay, or
 // wait V.corruption.wait terms) are both self-serve: paying is a button
@@ -18,7 +19,7 @@ const CorruptionPanel = ({ roomCode, me }) => {
                 it and restore everything, or wait it out ({V.corruption.wait} terms) - the freeze lifts on its own
                 but the popularity you lost stays and your roles are gone for good.
             </p>
-            <button
+            <Button
                 onClick={async () => {
                     setBusy(true)
                     try {
@@ -28,10 +29,10 @@ const CorruptionPanel = ({ roomCode, me }) => {
                     }
                 }}
                 disabled={busy || me.psd < V.corruption.fine}
-                className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors disabled:opacity-50 mt-3"
+                className="mt-3"
             >
                 Pay {V.corruption.fine} PSD to clear it
-            </button>
+            </Button>
         </div>
     )
 }

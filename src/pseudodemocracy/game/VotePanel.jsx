@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { castLeaderVote, tallyLeaderVoteAndAdvance } from '../gameEngine.js'
+import { Button } from '../../components/ui/button.jsx'
 
 // Eligible = passed the exam (or round 1 / post-coup, where everyone is
 // eligible since there was no exam to fail).
@@ -37,16 +38,15 @@ const VotePanel = ({ roomCode, round, roundState, me, players }) => {
             {iAmEligible && (
                 <div className="space-y-2">
                     {eligible.map((p) => (
-                        <button
+                        <Button
                             key={p.uid}
+                            variant="outline"
                             onClick={() => vote(p.uid)}
                             disabled={Boolean(myVote)}
-                            className={`block w-full text-left px-4 py-2 rounded-md border disabled:opacity-50 ${
-                                myVote === p.uid ? 'border-[rgb(var(--theme-accent))]' : 'border-black-300'
-                            }`}
+                            className={`block w-full text-left px-4 py-2 ${myVote === p.uid ? 'border-[rgb(var(--theme-accent))]' : ''}`}
                         >
                             {p.name}
-                        </button>
+                        </Button>
                     ))}
                 </div>
             )}

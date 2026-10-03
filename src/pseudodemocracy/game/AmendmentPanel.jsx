@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { parseHighlights } from '../parseHighlights.js'
 import { proposeAmendment, ruleAmendment, castAmendmentVoteOutcome, skipAmendmentWindow } from '../gameEngine.js'
+import { Button } from '../../components/ui/button.jsx'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select.jsx'
 
 const WINDOW_LABEL = { inauguration: 'Inauguration', midterm: 'Mid-term', farewell: 'Farewell' }
 
@@ -30,9 +32,9 @@ const ProposeForm = ({ roomCode, game, window, isLeader }) => {
         return (
             <div className="surface-card p-6 mb-6 text-center">
                 <p className="text-white-600 mb-3">Commanders can&apos;t amend the Constitution.</p>
-                <button onClick={() => skipAmendmentWindow(roomCode, window)} className="field-btn">
+                <Button variant="outline" onClick={() => skipAmendmentWindow(roomCode, window)}>
                     Continue
-                </button>
+                </Button>
             </div>
         )
     }
@@ -42,22 +44,24 @@ const ProposeForm = ({ roomCode, game, window, isLeader }) => {
         <div className="surface-card p-6 mb-6">
             <p className="font-semibold text-white-800 mb-1">{WINDOW_LABEL[window]} amendment</p>
             <p className="text-white-600 text-sm mb-4">Pick an article, then rewrite only its highlighted words - one word for one word.</p>
-            <select
+            <Select
                 value={`${chapterIndex}-${articleIndex}`}
-                onChange={(e) => {
-                    const [c, a] = e.target.value.split('-').map(Number)
+                onValueChange={(value) => {
+                    const [c, a] = value.split('-').map(Number)
                     changeArticle(c, a)
                 }}
-                className="w-full mb-4 px-3 py-2 rounded-md bg-transparent border border-black-300"
             >
-                {game.constitution.map((ch, cIndex) =>
-                    ch.articles.map((article, aIndex) => (
-                        <option key={`${cIndex}-${aIndex}`} value={`${cIndex}-${aIndex}`}>
-                            {article.name}
-                        </option>
-                    ))
-                )}
-            </select>
+                <SelectTrigger className="w-full mb-4"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                    {game.constitution.map((ch, cIndex) =>
+                        ch.articles.map((article, aIndex) => (
+                            <SelectItem key={`${cIndex}-${aIndex}`} value={`${cIndex}-${aIndex}`}>
+                                {article.name}
+                            </SelectItem>
+                        ))
+                    )}
+                </SelectContent>
+            </Select>
             <p className="text-white-800 mb-4 leading-relaxed">
                 {segments.map((s, i) => {
                     if (!s.highlighted) return <span key={i}>{s.text}</span>
@@ -75,7 +79,7 @@ const ProposeForm = ({ roomCode, game, window, isLeader }) => {
                 })}
             </p>
             {error && <p className="text-red-500 mb-3">{error}</p>}
-            <button
+            <Button
                 onClick={async () => {
                     setBusy(true)
                     setError('')
@@ -84,13 +88,12 @@ const ProposeForm = ({ roomCode, game, window, isLeader }) => {
                     setBusy(false)
                 }}
                 disabled={busy}
-                className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors disabled:opacity-50"
             >
                 Announce amendment
-            </button>
-            <button onClick={() => skipAmendmentWindow(roomCode, window)} className="field-btn ml-3">
+            </Button>
+            <Button variant="outline" onClick={() => skipAmendmentWindow(roomCode, window)} className="ml-3">
                 Skip this window
-            </button>
+            </Button>
         </div>
     )
 }
@@ -107,12 +110,12 @@ const PendingRuling = ({ roomCode, game, window }) => {
                 correct English? This is a judgement call, not a vote.
             </p>
             <div className="flex gap-3">
-                <button onClick={() => ruleAmendment(roomCode, window, true)} className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors">
+                <Button onClick={() => ruleAmendment(roomCode, window, true)}>
                     Passes - it&apos;s valid English
-                </button>
-                <button onClick={() => ruleAmendment(roomCode, window, false)} className="field-btn">
+                </Button>
+                <Button variant="outline" onClick={() => ruleAmendment(roomCode, window, false)}>
                     Fails - revert it
-                </button>
+                </Button>
             </div>
         </div>
     )
@@ -141,12 +144,9 @@ const AmendmentVote = ({ roomCode, game, window, playerCount }) => {
                     Against: <input type="number" min="0" value={againstVotes} onChange={(e) => setAgainstVotes(Number(e.target.value))} className="w-16 ml-2 px-2 py-1 rounded border border-black-300 bg-transparent" />
                 </label>
             </div>
-            <button
-                onClick={() => castAmendmentVoteOutcome(roomCode, window, forVotes, againstVotes, playerCount)}
-                className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors"
-            >
+            <Button onClick={() => castAmendmentVoteOutcome(roomCode, window, forVotes, againstVotes, playerCount)}>
                 Submit vote result
-            </button>
+            </Button>
         </div>
     )
 }
