@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { setLevy } from '../gameEngine.js'
+import { Button } from '../../components/ui/button.jsx'
 
 const LevyPanel = ({ roomCode, game, me }) => {
     const [amount, setAmount] = useState(game.levy.amount)
@@ -30,7 +31,7 @@ const LevyPanel = ({ roomCode, game, me }) => {
                 className="w-32 px-3 py-2 rounded-md bg-transparent border border-black-300 mb-4"
             />
             <div>
-                <button
+                <Button
                     onClick={async () => {
                         setBusy(true)
                         try {
@@ -40,10 +41,9 @@ const LevyPanel = ({ roomCode, game, me }) => {
                         }
                     }}
                     disabled={busy}
-                    className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors disabled:opacity-50"
                 >
                     Set levy and begin turns
-                </button>
+                </Button>
             </div>
         </div>
     )

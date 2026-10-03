@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { makeWill, payWillUpkeep, acceptInheritance, rejectInheritance } from '../gameEngine.js'
-
-const selectClass = 'px-2 py-1 rounded border border-black-300 bg-transparent'
+import { Button } from '../../components/ui/button.jsx'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../components/ui/select.jsx'
 
 const MakeWill = ({ roomCode, me, players }) => {
     const lawyers = players.filter((p) => p.roles?.includes('Lawyer') && p.uid !== me.uid)
@@ -21,24 +21,33 @@ const MakeWill = ({ roomCode, me, players }) => {
             <p className="text-white-600 text-sm mt-1">You can name the same heir or different heirs for your PSD and your roles.</p>
             <div className="flex flex-wrap items-center gap-2 mt-3">
                 <span className="text-white-600 text-sm">Lawyer:</span>
-                <select value={lawyerUid} onChange={(e) => setLawyerUid(e.target.value)} className={selectClass}>
-                    {lawyers.map((p) => (
-                        <option key={p.uid} value={p.uid}>{p.name}</option>
-                    ))}
-                </select>
+                <Select value={lawyerUid} onValueChange={setLawyerUid}>
+                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        {lawyers.map((p) => (
+                            <SelectItem key={p.uid} value={p.uid}>{p.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <span className="text-white-600 text-sm">PSD heir:</span>
-                <select value={psdHeirUid} onChange={(e) => setPsdHeirUid(e.target.value)} className={selectClass}>
-                    {others.map((p) => (
-                        <option key={p.uid} value={p.uid}>{p.name}</option>
-                    ))}
-                </select>
+                <Select value={psdHeirUid} onValueChange={setPsdHeirUid}>
+                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        {others.map((p) => (
+                            <SelectItem key={p.uid} value={p.uid}>{p.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <span className="text-white-600 text-sm">Role heir:</span>
-                <select value={roleHeirUid} onChange={(e) => setRoleHeirUid(e.target.value)} className={selectClass}>
-                    {others.map((p) => (
-                        <option key={p.uid} value={p.uid}>{p.name}</option>
-                    ))}
-                </select>
-                <button
+                <Select value={roleHeirUid} onValueChange={setRoleHeirUid}>
+                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        {others.map((p) => (
+                            <SelectItem key={p.uid} value={p.uid}>{p.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Button
                     onClick={async () => {
                         setError('')
                         try {
@@ -47,10 +56,9 @@ const MakeWill = ({ roomCode, me, players }) => {
                             setError(err.message)
                         }
                     }}
-                    className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors"
                 >
                     Sign will
-                </button>
+                </Button>
             </div>
             {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
@@ -80,9 +88,9 @@ const MyWill = ({ roomCode, me, players }) => {
                     placeholder="Upkeep (PSD)"
                     className="w-32 px-2 py-1 rounded border border-black-300 bg-transparent"
                 />
-                <button onClick={() => payWillUpkeep(roomCode, me.uid, amount)} className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors">
+                <Button onClick={() => payWillUpkeep(roomCode, me.uid, amount)}>
                     Pay upkeep
-                </button>
+                </Button>
             </div>
         </div>
     )
@@ -102,22 +110,22 @@ const InheritancePanel = ({ roomCode, game, me, players }) => {
             <div className="flex flex-wrap gap-3 mt-3">
                 {isPsdHeir && (
                     <>
-                        <button onClick={() => acceptInheritance(roomCode, me.uid, 'psd')} className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors">
+                        <Button onClick={() => acceptInheritance(roomCode, me.uid, 'psd')}>
                             Accept {pending.psdAmount} PSD
-                        </button>
-                        <button onClick={() => rejectInheritance(roomCode, me.uid, 'psd')} className="field-btn">
+                        </Button>
+                        <Button variant="outline" onClick={() => rejectInheritance(roomCode, me.uid, 'psd')}>
                             Reject PSD
-                        </button>
+                        </Button>
                     </>
                 )}
                 {isRoleHeir && pending.roleList.length > 0 && (
                     <>
-                        <button onClick={() => acceptInheritance(roomCode, me.uid, 'role')} className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors">
+                        <Button onClick={() => acceptInheritance(roomCode, me.uid, 'role')}>
                             Accept role(s): {pending.roleList.join(', ')}
-                        </button>
-                        <button onClick={() => rejectInheritance(roomCode, me.uid, 'role')} className="field-btn">
+                        </Button>
+                        <Button variant="outline" onClick={() => rejectInheritance(roomCode, me.uid, 'role')}>
                             Reject role(s)
-                        </button>
+                        </Button>
                     </>
                 )}
             </div>

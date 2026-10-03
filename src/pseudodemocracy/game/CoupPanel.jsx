@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { attemptCoup } from '../gameEngine.js'
 import { canAttemptCoup, COUP_COST, COUP_GAP } from '../engine/coup.js'
+import { Button } from '../../components/ui/button.jsx'
 
 // Coups can happen "at any point during any term" per the locked coup
 // rule, so this panel shows whenever there's a sitting Leader who isn't
@@ -36,13 +37,9 @@ const CoupPanel = ({ roomCode, me, leader, players }) => {
                 You have {me.psd} PSD, {me.coupCards || 0} coup card(s), {me.popularity || 0} popularity vs their{' '}
                 {leader.popularity || 0}.
             </p>
-            <button
-                onClick={handleCoup}
-                disabled={!eligible || busy}
-                className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors disabled:opacity-50 mt-3"
-            >
+            <Button onClick={handleCoup} disabled={!eligible || busy} className="mt-3">
                 {eligible ? 'Attempt coup' : 'Not eligible yet'}
-            </button>
+            </Button>
             {message && <p className="text-white-600 mt-2">{message}</p>}
         </div>
     )

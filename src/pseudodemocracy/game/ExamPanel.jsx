@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { V } from '../psdData.js'
 import { writeExam, submitExamAnswers, revealExam } from '../gameEngine.js'
+import { Button } from '../../components/ui/button.jsx'
 
 const emptyQuestion = () => ({ text: '', options: ['', ''], correct: 0 })
 
@@ -75,19 +76,12 @@ const WriteExamForm = ({ roomCode, round, leaderUid }) => {
                 </div>
             ))}
             <div className="flex gap-4">
-                <button
-                    onClick={() => setQuestions((qs) => [...qs, emptyQuestion()])}
-                    className="field-btn"
-                >
+                <Button variant="outline" onClick={() => setQuestions((qs) => [...qs, emptyQuestion()])}>
                     + Add question
-                </button>
-                <button
-                    onClick={handleSubmit}
-                    disabled={!canSubmit || busy}
-                    className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors disabled:opacity-50"
-                >
+                </Button>
+                <Button onClick={handleSubmit} disabled={!canSubmit || busy}>
                     Seal exam
-                </button>
+                </Button>
             </div>
         </div>
     )
@@ -129,13 +123,9 @@ const TakeExamForm = ({ roomCode, round, roundState, me }) => {
             {submitted ? (
                 <p className="text-white-600">Answers submitted - waiting for the Leader to reveal the key.</p>
             ) : (
-                <button
-                    onClick={handleSubmit}
-                    disabled={answers.length !== roundState.questions.length}
-                    className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors disabled:opacity-50"
-                >
+                <Button onClick={handleSubmit} disabled={answers.length !== roundState.questions.length}>
                     Submit answers
-                </button>
+                </Button>
             )}
         </div>
     )
@@ -158,7 +148,7 @@ const ExamPanel = ({ roomCode, round, roundState, me, players, isLeader }) => {
         return (
             <div className="surface-card p-6 mb-6 text-center">
                 <p className="text-white-600">{answered} / {total} players have answered.</p>
-                <button
+                <Button
                     onClick={async () => {
                         setBusy(true)
                         try {
@@ -168,10 +158,10 @@ const ExamPanel = ({ roomCode, round, roundState, me, players, isLeader }) => {
                         }
                     }}
                     disabled={busy}
-                    className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors mt-3 disabled:opacity-50"
+                    className="mt-3"
                 >
                     Reveal answer key
-                </button>
+                </Button>
             </div>
         )
     }

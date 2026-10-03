@@ -102,20 +102,20 @@ const PerformancePanel = ({ roomCode, game, me, players, performer, activeOrder 
                     <>
                         <p className="text-white-600 text-sm mb-2">{votesIn} / {eligibleVoters.length} votes cast.</p>
                         <div className="flex gap-3">
-                            <button
+                            <Button
+                                variant={myVote === 'good' ? 'accent' : 'default'}
                                 onClick={() => castPerformanceVote(roomCode, me.uid, 'good')}
                                 disabled={Boolean(myVote)}
-                                className={`field-btn disabled:opacity-50 ${myVote === 'good' ? 'bg-[rgb(var(--theme-accent))] text-white' : ''}`}
                             >
                                 Good
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                                variant={myVote === 'bad' ? 'accent' : 'default'}
                                 onClick={() => castPerformanceVote(roomCode, me.uid, 'bad')}
                                 disabled={Boolean(myVote)}
-                                className={`field-btn disabled:opacity-50 ${myVote === 'bad' ? 'bg-[rgb(var(--theme-accent))] text-white' : ''}`}
                             >
                                 Bad
-                            </button>
+                            </Button>
                         </div>
                     </>
                 )}
@@ -155,12 +155,9 @@ const PerformancePanel = ({ roomCode, game, me, players, performer, activeOrder 
                 </>
             )}
             <div className="mt-4">
-                <button
-                    onClick={() => clearPerformance(roomCode)}
-                    className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors"
-                >
+                <Button onClick={() => clearPerformance(roomCode)}>
                     Done
-                </button>
+                </Button>
             </div>
         </div>
     )
@@ -184,9 +181,9 @@ const TurnsPanel = ({ roomCode, game, me, players }) => {
         return (
             <div className="surface-card p-6 mb-6 text-center">
                 <p className="text-white-600 mb-3">Everyone has taken their turn this term.</p>
-                <button onClick={() => advanceToFarewell(roomCode)} className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors">
+                <Button onClick={() => advanceToFarewell(roomCode)}>
                     Continue to Farewell amendment
-                </button>
+                </Button>
             </div>
         )
     }
@@ -212,12 +209,9 @@ const TurnsPanel = ({ roomCode, game, me, players }) => {
             {isMyTurn ? (
                 <>
                     <p className="text-white-600 text-sm mb-4">Draw a Performance card to start your turn.</p>
-                    <button
-                        onClick={() => drawPerformanceCard(roomCode, me.uid)}
-                        className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors mb-4"
-                    >
+                    <Button onClick={() => drawPerformanceCard(roomCode, me.uid)} className="mb-4">
                         Draw a Performance card
-                    </button>
+                    </Button>
                     <div>
                         <p className="text-white-600 text-sm mb-2">
                             Once resolved, declare any taxable income you collected (not losses/payments - those were
@@ -232,7 +226,7 @@ const TurnsPanel = ({ roomCode, game, me, players }) => {
                             className="w-48 px-3 py-2 rounded-md bg-transparent border border-black-300 mb-4"
                         />
                         <div>
-                            <button
+                            <Button
                                 onClick={async () => {
                                     setBusy(true)
                                     try {
@@ -242,10 +236,9 @@ const TurnsPanel = ({ roomCode, game, me, players }) => {
                                     }
                                 }}
                                 disabled={busy}
-                                className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors disabled:opacity-50"
                             >
                                 Pay and end my turn
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </>

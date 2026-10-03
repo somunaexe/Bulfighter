@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { drawLeaderRole } from '../gameEngine.js'
+import { Button } from '../../components/ui/button.jsx'
 
 const ROLE_BLURB = {
     Dictator: 'Can act without the table’s approval. Amendments always stand.',
@@ -19,7 +20,7 @@ const RoleDrawPanel = ({ roomCode, me, leaderUid }) => {
         <div className="surface-card p-6 mb-6 text-center">
             <p className="font-semibold text-white-800 mb-1">You&apos;re the new Leader</p>
             <p className="text-white-600 mb-4">Draw your Leader type: Dictator, President or Commander.</p>
-            <button
+            <Button
                 onClick={async () => {
                     setBusy(true)
                     try {
@@ -29,10 +30,9 @@ const RoleDrawPanel = ({ roomCode, me, leaderUid }) => {
                     }
                 }}
                 disabled={busy}
-                className="field-btn hover:bg-[rgb(var(--theme-accent))] hover:text-white transition-colors disabled:opacity-50"
             >
                 Draw role
-            </button>
+            </Button>
         </div>
     )
 }
