@@ -3,16 +3,14 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { BrowserRouter, Routes, Route } from 'react-router'
 
-// Lazy-loaded per route so visiting one page (e.g. /pseudodemocracy)
-// doesn't pull in every other page's code - App.jsx alone drags in the
-// homepage's 3D/animation libraries (three.js, GSAP), which were
-// previously loaded into every tab regardless of which route it was on.
+// Lazy-loaded per route so visiting one page (e.g. /clips) doesn't pull in
+// every other page's code - App.jsx alone drags in the homepage's 3D/
+// animation libraries (three.js, GSAP), which were previously loaded into
+// every tab regardless of which route it was on.
 const App = lazy(() => import('./App.jsx'))
 const Admin = lazy(() => import('./admin/Admin.jsx'))
 const ConsentsForm = lazy(() => import('./sections/ConsentForm.jsx'))
 const Clips = lazy(() => import('./sections/Clips.jsx'))
-const Pseudodemocracy = lazy(() => import('./sections/Pseudodemocracy.jsx'))
-const PseudodemocracySpectate = lazy(() => import('./pseudodemocracy/Spectate.jsx'))
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -26,9 +24,6 @@ createRoot(document.getElementById('root')).render(
           <Route path="*" element={<App />} />
 
           <Route path="/clips" element={<Clips />} />
-
-          <Route path="/pseudodemocracy" element={<Pseudodemocracy />} />
-          <Route path="/pseudodemocracy/spectate" element={<PseudodemocracySpectate />} />
 
           {/* Page for casted members */}
           <Route path="consent" element={<ConsentsForm />} />
