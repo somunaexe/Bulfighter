@@ -1,7 +1,0 @@
-# markdownlint config for super-linter (see .github/workflows/super-linter.yml,
-# which points LINTER_RULES_PATH at the repository root so this file is found).
-#
-# MD013 (line-length) is impractical for README.md: its prose lines carry long
-# inline links and run well past any reasonable fixed width. Every other
-# default rule stays on.
-MD013: false

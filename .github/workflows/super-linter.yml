@@ -8,9 +8,9 @@ name: Lint Code Base
 
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
   pull_request:
-    branches: ["main"]
+    branches: ['main']
 
 permissions: {}
 
@@ -27,15 +27,27 @@ jobs:
           # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # The flat eslint.config.js imports project devDependencies (e.g.
+      # eslint-plugin-react-refresh) by name - super-linter's own ESLint
+      # runtime can only resolve those if node_modules actually exists in
+      # the checked-out workspace it shares with this step.
+      - name: Install dependencies (for ESLint plugin resolution)
+        run: npm ci
+
       - name: Lint Code Base
         uses: super-linter/super-linter@v9.0.0
         env:
           VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: "main"
+          DEFAULT_BRANCH: 'main'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # The repo's ESLint config is a flat config at the repository root
           # (eslint.config.js), not super-linter's default lookup location
           # (.github/linters/eslint.config.mjs) - point it at the real one
           # instead of letting it fall back to a broken/mismatched config.
-          LINTER_RULES_PATH: "."
-          JAVASCRIPT_ES_CONFIG_FILE: "eslint.config.js"
+          LINTER_RULES_PATH: '.'
+          JAVASCRIPT_ES_CONFIG_FILE: 'eslint.config.js'
