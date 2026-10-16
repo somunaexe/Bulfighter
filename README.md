@@ -116,6 +116,7 @@ class node_visitor,node_smtp toneIndigo
 - [Framer Motion](https://www.framer.com/motion/) — animation (press feedback, dropdown transitions) in Pseudodemocracy _(prototype, see below)_
 - [Radix UI](https://www.radix-ui.com/) primitives + a [shadcn/ui](https://ui.shadcn.com/)-style `Button`/`Select` layer — accessible interactive components used by Pseudodemocracy _(prototype, see below)_
 - `class-variance-authority`, `clsx`, `tailwind-merge` — supporting utilities for the component layer above _(prototype, see below)_
+
 <!-- - [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) + [Drei](https://github.com/pmndrs/drei) + [Three.js](https://threejs.org/) — 3D rendering
 - [react-globe.gl](https://github.com/vasturiano/react-globe.gl) — interactive 3D globe visualisation -->
   <!-- - [GSAP](https://gsap.com/) (`@gsap/react`) — animation -->

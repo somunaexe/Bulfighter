@@ -8,3 +8,7 @@
 # inline links and run well past any reasonable fixed width. Every other
 # default rule stays on.
 MD013: false
+# The Tech Stack section uses bold text ("**Frontend**", "**Backend / Infra**",
+# etc.) as sub-groupings under one H2, not as real headings - that's a
+# deliberate, common README convention, not a heading that got mis-typed.
+MD036: false
