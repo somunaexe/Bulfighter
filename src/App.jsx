@@ -2,6 +2,7 @@ import Navbar from './sections/Navbar'
 import { navLinks } from "./constants/index.js"
 import Contact from './sections/Contact'
 import Footer from './sections/Footer'
+import CookieNotice from './components/CookieNotice.jsx'
 const App = () => {
   return (
     <main className="max-w-7xl mx-auto min-h-screen flex flex-col">
@@ -13,6 +14,7 @@ const App = () => {
         <Contact />
       </div>
       <Footer />
+      <CookieNotice />
     </main>
   )
 }

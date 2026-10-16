@@ -19,6 +19,7 @@ const Contact = () => {
     const [dots, setDots] = useState(1);
     const [hasReadOnboarding, setHasReadOnboarding] = useState(false);
     const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
+    const [dataConsent, setDataConsent] = useState(false);
 
     const [form, setForm] = useState({
         name: '',
@@ -181,6 +182,7 @@ const Contact = () => {
         setOrders([])
         setSpotify([])
         setHasReadOnboarding(false)
+        setDataConsent(false)
         if (orderInputRef.current) orderInputRef.current.value = "";
         if (spotifyInputRef.current) spotifyInputRef.current.value = "";
         setLoading(false);
@@ -297,7 +299,33 @@ const Contact = () => {
                     <label className="space-y-3">
                         <p className="field-label"><b>Food Order History </b></p>
                         <p className='field-label'>Please upload screenshots of your 10 most recent orders from Uber Eats, Deliveroo, and/or Just Eat.<br></br>If it fails to upload, please send it to bulfighter.exe@gmail.com</p>
+                        <p className="field-label text-sm">
+                            <strong>Before uploading:</strong> please crop or blur out your home address, payment card
+                            details, or anyone else&apos;s name - we only need the order itself.
+                        </p>
                         <input type="file" accept="image/*,video/*" multiple name="orders" onChange={handleOrderChange} ref={orderInputRef} className="field-input" />
+                    </label>
+
+                    {/* Separate from the onboarding-sheet checkbox below: that one is
+                        about understanding the show, this one is the actual informed
+                        consent to process personal data (including allergies, which
+                        are health data) per the Privacy Policy - the two shouldn't be
+                        merged into one tickbox covering unrelated things. */}
+                    <label className="flex items-start gap-3">
+                        <input
+                            type="checkbox"
+                            name="dataConsent"
+                            checked={dataConsent}
+                            onChange={(e) => setDataConsent(e.target.checked)}
+                            required
+                            className="mt-1 w-5 h-5 shrink-0 accent-[rgb(var(--theme-accent))]"
+                        />
+                        <span className="text-white-600">
+                            I consent to Bulfighter processing my personal data, including any allergy information I
+                            provide, as described in the{' '}
+                            <a href="/privacy" target="_blank" rel="noreferrer" className="link-accent">Privacy Policy</a>.
+                            <span className='text-red-500'> *</span>
+                        </span>
                     </label>
 
                     {/* <label className="space-y-3">
@@ -342,7 +370,7 @@ const Contact = () => {
                     <button
                         className="field-btn hover:bg-[rgb(var(--theme-accent))] disabled:pointer-events-none disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         type="submit"
-                        disabled={loading || !hasReadOnboarding}
+                        disabled={loading || !hasReadOnboarding || !dataConsent}
                     >
                         {loading ? 'Sending...' : uploading ? 'Uploading files' : 'Show your interest'}
                         <img src="/assets/arrow-up.png" alt="arrow-up" className="field-btn_arrow"/>

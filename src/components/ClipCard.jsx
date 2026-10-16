@@ -6,7 +6,12 @@ const ClipCard = ({ clip }) => {
     const [thumbFailed, setThumbFailed] = useState(false)
     const isShort = type === 'short'
 
-    const embedSrc = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1${start ? `&start=${start}` : ''}`
+    // youtube-nocookie.com (YouTube's privacy-enhanced domain) instead of
+    // youtube.com: per Google's own docs, it won't store identifying cookies
+    // for a viewer who doesn't interact with the player. The iframe is only
+    // created on click (see `playing` below), so no third-party request
+    // happens at all until someone actually presses play.
+    const embedSrc = `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1${start ? `&start=${start}` : ''}`
 
     return (
         <div
