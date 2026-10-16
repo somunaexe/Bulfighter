@@ -2,7 +2,7 @@
 
 Live site: [bulfighter.com](https://bulfighter.com/)
 
-The official source code for **Bulfighter** — a React single-page application with an interactive 3D globe visualisation, animated UI, and a serverless contact/email pipeline. It previously also housed **Pseudodemocracy**, a realtime multiplayer party game; that game is being rebuilt as a standalone [Godot](https://godotengine.org/) project, and its web version has been removed from this app (see [Pseudodemocracy](#pseudodemocracy) below for where its source now lives).
+The official source code for **Bulfighter** — a React single-page application with animated UI and a serverless contact/email pipeline. It previously also housed **Pseudodemocracy**, a realtime multiplayer party game; that game is being rebuilt as a standalone [Godot](https://godotengine.org/) project, and its web version has been removed from this app (see [Pseudodemocracy](#pseudodemocracy) below for where its source now lives).
 
 ## Architecture
 
