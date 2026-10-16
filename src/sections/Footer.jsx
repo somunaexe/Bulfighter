@@ -23,13 +23,22 @@ const Footer = () => {
     // column - only the background/border go edge-to-edge, same look as
     // Navbar's outer <header> + inner max-w-7xl div split.
     <footer className="navbar-surface w-screen relative left-1/2 -mx-[50vw] mt-10 border-t border-black-300">
-        <div className="max-w-7xl mx-auto c-space py-7 flex justify-between items-center flex-wrap gap-3 text-sm">
-            <div className="text-white-700 flex gap-2">
-                <p>Terms & Conditions</p>
-                <p>|</p>
-                <p>Privacy Policy</p>
+        <div className="max-w-7xl mx-auto c-space py-7 flex flex-col gap-3 text-sm">
+            <div className="flex justify-between items-center flex-wrap gap-3">
+                <div className="text-white-700 flex gap-2 flex-wrap">
+                    <a href="/terms" className="hover:text-[rgb(var(--theme-accent))] transition-colors">Terms &amp; Conditions</a>
+                    <p>|</p>
+                    <a href="/privacy" className="hover:text-[rgb(var(--theme-accent))] transition-colors">Privacy Policy</a>
+                    <p>|</p>
+                    <a href="/privacy#cookies" className="hover:text-[rgb(var(--theme-accent))] transition-colors">Cookie Policy</a>
+                </div>
+                <p className="text-white-700">© 2026 Bulfighter. All rights reserved.</p>
             </div>
-            <p className="text-white-700">© 2026 Bulfighter. All rights reserved.</p>
+            {/* Business details: a trading name and contact, not a registered
+                company - update this line if that status ever changes. */}
+            <p className="text-white-500 text-xs">
+                Bulfighter is a trading name. Contact: bulfighter.exe@gmail.com
+            </p>
         </div>
     </footer>
   )

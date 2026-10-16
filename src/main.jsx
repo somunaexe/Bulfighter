@@ -6,6 +6,8 @@ import Admin from './admin/Admin.jsx'
 import { BrowserRouter, Routes, Route } from 'react-router'
 import ConsentsForm from './sections/ConsentForm.jsx'
 import Clips from './sections/Clips.jsx'
+import Privacy from './sections/Privacy.jsx'
+import Terms from './sections/Terms.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -18,6 +20,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="*" element={<App />} />
 
         <Route path="/clips" element={<Clips />} />
+
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
 
         {/* Page for casted members */}
         <Route path="consent" element={<ConsentsForm />} />

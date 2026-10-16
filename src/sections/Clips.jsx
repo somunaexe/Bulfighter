@@ -5,6 +5,7 @@ import ClipCard from '../components/ClipCard.jsx'
 import CastAvatars from '../components/CastAvatars.jsx'
 import Pagination from '../components/Pagination.jsx'
 import ClipsSkeleton from '../components/ClipsSkeleton.jsx'
+import CookieNotice from '../components/CookieNotice.jsx'
 import { navLinks } from '../constants/index.js'
 import { getTopics } from '../api/topics.js'
 import { parseYoutubeVideo } from '../utils/youtube.js'
@@ -203,6 +204,7 @@ const Clips = () => {
             </section>
 
             <Footer />
+            <CookieNotice />
         </main>
     )
 }

@@ -13,6 +13,7 @@ const ConsentForm = () => {
     const consent = document.getElementById("consent");
     const [message, setMessage] = useState({});
     const [loading, setLoading] = useState(false)
+    const [agreedToFilm, setAgreedToFilm] = useState(false)
 
         const [form, setForm] = useState({
         name: '',
@@ -135,6 +136,7 @@ const ConsentForm = () => {
             guardianPhoneNumber: "",
             guardianAllergies: "",
         });
+        setAgreedToFilm(false);
         setLoading(false);
     }
 
@@ -243,7 +245,45 @@ const ConsentForm = () => {
                         )
                     }
                     
-                    <button className="field-btn hover:bg-gray-300 disabled:bg-black-600" type="submit" disabled={loading || (Number(form.age < 18) && Number(form.guardianAge < 18))}>
+                    {/* The actual informed consent - distinct from the submit button's
+                        label, which alone isn't a clear enough record of what someone
+                        agreed to. Wording covers both being filmed/published (Terms)
+                        and personal-data processing (Privacy Policy), and is phrased
+                        for the guardian specifically when they're the one consenting
+                        on a minor's behalf. */}
+                    <label className="flex items-start gap-3">
+                        <input
+                            type="checkbox"
+                            checked={agreedToFilm}
+                            onChange={(e) => setAgreedToFilm(e.target.checked)}
+                            required
+                            className="mt-1 w-5 h-5 shrink-0 accent-[rgb(var(--theme-accent))]"
+                        />
+                        <span className="text-white-600">
+                            {Number(form.age) < 18 ? (
+                                <>
+                                    As the participant&apos;s parent/legal guardian, I consent to their being filmed and
+                                    to Bulfighter publishing the resulting footage, and to Bulfighter processing our
+                                    personal data (including any allergy information), as described in the{' '}
+                                    <a href="/terms" target="_blank" rel="noreferrer" className="link-accent">Terms &amp; Conditions</a>
+                                    {' '}and{' '}
+                                    <a href="/privacy" target="_blank" rel="noreferrer" className="link-accent">Privacy Policy</a>.
+                                </>
+                            ) : (
+                                <>
+                                    I consent to being filmed and to Bulfighter publishing the resulting footage, and to
+                                    Bulfighter processing my personal data (including any allergy information), as
+                                    described in the{' '}
+                                    <a href="/terms" target="_blank" rel="noreferrer" className="link-accent">Terms &amp; Conditions</a>
+                                    {' '}and{' '}
+                                    <a href="/privacy" target="_blank" rel="noreferrer" className="link-accent">Privacy Policy</a>.
+                                </>
+                            )}
+                            <span className='text-red-500'> *</span>
+                        </span>
+                    </label>
+
+                    <button className="field-btn hover:bg-gray-300 disabled:bg-black-600" type="submit" disabled={loading || !agreedToFilm || (Number(form.age < 18) && Number(form.guardianAge < 18))}>
                         {loading ? 'Sending...' : 'I agree to shoot 📹'}
                         <img src="/assets/arrow-up.png" alt="arrow-up" className="field-btn_arrow"/>
                     </button>

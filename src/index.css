@@ -281,7 +281,12 @@ body {
   }
 
   .field-input[type="file"]::file-selector-button {
-    @apply cursor-pointer mr-4 px-4 py-2 rounded-md border-0 bg-black-500 text-white-800 text-sm font-semibold transition-colors hover:bg-[rgb(var(--theme-accent))] hover:text-white;
+    /* No hover:text-white here - white text on the accent colour (orange in
+       light mode, pink in dark mode) measures under 3.3:1, below WCAG AA's
+       4.5:1 for this small/normal-size text. Keeping text-white-800 (the
+       same dark foreground as the unhovered state) passes comfortably in
+       both themes. */
+    @apply cursor-pointer mr-4 px-4 py-2 rounded-md border-0 bg-black-500 text-white-800 text-sm font-semibold transition-colors hover:bg-[rgb(var(--theme-accent))];
   }
 
   .field-btn_arrow {
