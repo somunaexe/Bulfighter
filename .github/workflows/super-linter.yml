@@ -52,3 +52,15 @@ jobs:
           # instead of letting it fall back to a broken/mismatched config.
           LINTER_RULES_PATH: '.'
           JAVASCRIPT_ES_CONFIG_FILE: 'eslint.config.js'
+          # Prettier (.prettierrc.json, singleQuote: true) is this repo's chosen
+          # formatter and is already enforced by JSX_PRETTIER/JAVASCRIPT_PRETTIER.
+          # Biome's own formatter defaults to double quotes and can never agree
+          # with Prettier's style.
+          VALIDATE_BIOME_FORMAT: false
+          # ESLint (eslint.config.js) is this repo's chosen linter and is already
+          # enforced, correctly scoped to changed files, by JAVASCRIPT_ES. Biome's
+          # lint rules are a second, much stricter ruleset that - unlike ESLint -
+          # doesn't respect VALIDATE_ALL_CODEBASE: false here, so it re-surfaces
+          # the entire repo's pre-existing issues (87+ findings) on every PR
+          # regardless of what that PR actually touches.
+          VALIDATE_BIOME_LINT: false
