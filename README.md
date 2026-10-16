@@ -108,30 +108,33 @@ class node_visitor,node_smtp toneIndigo
 ## Tech Stack
 
 **Frontend**
+
 - [React 18](https://react.dev/) + [Vite](https://vitejs.dev/) — app shell and build tooling
 - [React Router](https://reactrouter.com/) — client-side routing
 - [Tailwind CSS](https://tailwindcss.com/) — utility-first styling
 - [date-fns](https://date-fns.org/), [file-saver](https://github.com/eligrey/FileSaver.js/), [react-responsive](https://github.com/yocontra/react-responsive)
-- [Framer Motion](https://www.framer.com/motion/) — animation (press feedback, dropdown transitions) in Pseudodemocracy *(prototype, see below)*
-- [Radix UI](https://www.radix-ui.com/) primitives + a [shadcn/ui](https://ui.shadcn.com/)-style `Button`/`Select` layer — accessible interactive components used by Pseudodemocracy *(prototype, see below)*
-- `class-variance-authority`, `clsx`, `tailwind-merge` — supporting utilities for the component layer above *(prototype, see below)*
+- [Framer Motion](https://www.framer.com/motion/) — animation (press feedback, dropdown transitions) in Pseudodemocracy _(prototype, see below)_
+- [Radix UI](https://www.radix-ui.com/) primitives + a [shadcn/ui](https://ui.shadcn.com/)-style `Button`/`Select` layer — accessible interactive components used by Pseudodemocracy _(prototype, see below)_
+- `class-variance-authority`, `clsx`, `tailwind-merge` — supporting utilities for the component layer above _(prototype, see below)_
 <!-- - [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) + [Drei](https://github.com/pmndrs/drei) + [Three.js](https://threejs.org/) — 3D rendering
 - [react-globe.gl](https://github.com/vasturiano/react-globe.gl) — interactive 3D globe visualisation -->
-<!-- - [GSAP](https://gsap.com/) (`@gsap/react`) — animation -->
-<!-- - [Leva](https://github.com/pmndrs/leva) — real-time 3D scene tuning controls -->
-<!-- - [maath](https://github.com/pmndrs/maath) — math helpers for 3D/animation -->
-
+  <!-- - [GSAP](https://gsap.com/) (`@gsap/react`) — animation -->
+  <!-- - [Leva](https://github.com/pmndrs/leva) — real-time 3D scene tuning controls -->
+  <!-- - [maath](https://github.com/pmndrs/maath) — math helpers for 3D/animation -->
 
 **Pseudodemocracy (realtime multiplayer prototype, see below)**
+
 - [Firebase](https://firebase.google.com/) — Firestore (realtime game state) + Anonymous Auth, no custom server for game logic (all client-side, see `gameEngine.js` on the [`pseudodemocracy-archive`](https://github.com/somunaexe/Bulfighter/tree/pseudodemocracy-archive/src/pseudodemocracy/gameEngine.js) branch)
 
 **Backend / Infra**
+
 - [Express 5](https://expressjs.com/) — API server
 - [Nodemailer](https://nodemailer.com/) — transactional email, packaged as an AWS Lambda layer (`nodemailer-layer/`)
 - [CORS](https://github.com/expressjs/cors), [dotenv](https://github.com/motdotla/dotenv)
 - GitHub Actions (`.github/workflows/`) — CI/CD
 
 **Tooling**
+
 - ESLint (flat config) with React/Hooks/Refresh plugins
 - PostCSS + Autoprefixer
 
@@ -159,6 +162,7 @@ structure.
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - npm
 
