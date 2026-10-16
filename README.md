@@ -2,7 +2,7 @@
 
 Live site: [bulfighter.com](https://bulfighter.com/)
 
-The official source code for **Bulfighter** — a React single-page application with animated UI and a serverless contact/email pipeline. It previously also housed **Pseudodemocracy**, a realtime multiplayer party game; that game is being rebuilt as a standalone [Godot](https://godotengine.org/) project, and its web version has been removed from this app (see [Pseudodemocracy](#pseudodemocracy) below for where its source now lives).
+The official source code for **Bulfighter** — a React single-page application with animated UI and a serverless contact/email pipeline. It also includes **Pseudodemocracy**, a realtime multiplayer party game built here as a working web prototype to prove out the format; it's now graduating into its own standalone [Godot](https://godotengine.org/) project (see [Pseudodemocracy](#pseudodemocracy) below for where the prototype's source lives).
 
 ## Architecture
 
@@ -112,9 +112,9 @@ class node_visitor,node_smtp toneIndigo
 - [React Router](https://reactrouter.com/) — client-side routing
 - [Tailwind CSS](https://tailwindcss.com/) — utility-first styling
 - [date-fns](https://date-fns.org/), [file-saver](https://github.com/eligrey/FileSaver.js/), [react-responsive](https://github.com/yocontra/react-responsive)
-- [Framer Motion](https://www.framer.com/motion/) — animation (press feedback, dropdown transitions) in Pseudodemocracy *(archived, see below)*
-- [Radix UI](https://www.radix-ui.com/) primitives + a [shadcn/ui](https://ui.shadcn.com/)-style `Button`/`Select` layer — accessible interactive components used by Pseudodemocracy *(archived, see below)*
-- `class-variance-authority`, `clsx`, `tailwind-merge` — supporting utilities for the component layer above *(archived, see below)*
+- [Framer Motion](https://www.framer.com/motion/) — animation (press feedback, dropdown transitions) in Pseudodemocracy *(prototype, see below)*
+- [Radix UI](https://www.radix-ui.com/) primitives + a [shadcn/ui](https://ui.shadcn.com/)-style `Button`/`Select` layer — accessible interactive components used by Pseudodemocracy *(prototype, see below)*
+- `class-variance-authority`, `clsx`, `tailwind-merge` — supporting utilities for the component layer above *(prototype, see below)*
 <!-- - [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) + [Drei](https://github.com/pmndrs/drei) + [Three.js](https://threejs.org/) — 3D rendering
 - [react-globe.gl](https://github.com/vasturiano/react-globe.gl) — interactive 3D globe visualisation -->
 <!-- - [GSAP](https://gsap.com/) (`@gsap/react`) — animation -->
@@ -122,7 +122,7 @@ class node_visitor,node_smtp toneIndigo
 <!-- - [maath](https://github.com/pmndrs/maath) — math helpers for 3D/animation -->
 
 
-**Pseudodemocracy (realtime multiplayer, archived - see below)**
+**Pseudodemocracy (realtime multiplayer prototype, see below)**
 - [Firebase](https://firebase.google.com/) — Firestore (realtime game state) + Anonymous Auth, no custom server for game logic (all client-side, see `gameEngine.js` on the [`pseudodemocracy-archive`](https://github.com/somunaexe/Bulfighter/tree/pseudodemocracy-archive/src/pseudodemocracy/gameEngine.js) branch)
 
 **Backend / Infra**
@@ -151,9 +151,10 @@ Bulfighter/
 ```
 
 Pseudodemocracy's own tree (`pseudodemocracy/` at the repo root, `src/pseudodemocracy/`,
-`src/components/ui/`, `src/lib/`) no longer exists here - it's preserved as-is on the
+`src/components/ui/`, `src/lib/`) lives on the
 [`pseudodemocracy-archive`](https://github.com/somunaexe/Bulfighter/tree/pseudodemocracy-archive)
-branch. See that branch's own tree for its structure.
+branch as a reference for the standalone Godot build. See that branch's own tree for its
+structure.
 
 ## Getting Started
 
@@ -213,7 +214,7 @@ npm run lint
 
 ## Pseudodemocracy
 
-**Status: archived here, being rebuilt in [Godot](https://godotengine.org/).** Pseudodemocracy is no longer part of this web app - its full source, as it stood, is preserved on the [`pseudodemocracy-archive`](https://github.com/somunaexe/Bulfighter/tree/pseudodemocracy-archive) branch for reference while the Godot version is built. Everything below describes that archived version, not anything currently running in this app.
+**A web prototype, now graduating into its own [Godot](https://godotengine.org/) project.** Pseudodemocracy was built and shown here as a working proof of concept; its full source, as it stood, is preserved on the [`pseudodemocracy-archive`](https://github.com/somunaexe/Bulfighter/tree/pseudodemocracy-archive) branch as a reference for the standalone build. Everything below describes that prototype.
 
 A satirical, Nigerian-themed political party board game, played online at `/pseudodemocracy`: create or join a room, then play through exams, votes, role draws, amendments, coups, corruption, Health/Doctor, Unions, and Wills & Inheritance — all realtime via Firestore, no page refresh needed. Full rules, numbers and card text live in [`pseudodemocracy/data/`](https://github.com/somunaexe/Bulfighter/tree/pseudodemocracy-archive/pseudodemocracy/data) (single source of truth) and [`pseudodemocracy/CHANGES.md`](https://github.com/somunaexe/Bulfighter/blob/pseudodemocracy-archive/pseudodemocracy/CHANGES.md) on the archive branch.
 
