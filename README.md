@@ -137,7 +137,7 @@ class node_visitor,node_smtp toneIndigo
 
 ## Project Structure
 
-```
+```text
 Bulfighter/
 ├── .github/workflows/      # CI/CD pipelines
 ├── nodemailer-layer/       # AWS Lambda layer for the email/contact backend
@@ -150,7 +150,7 @@ Bulfighter/
 └── eslint.config.js
 ```
 
-Pseudodemocracy's own tree (`pseudodemocracy/` at the repo root, `src/pseudodemocracy/`,
+Pseudodemocracy's own tree (`pseudodemocracy/` at the repository root, `src/pseudodemocracy/`,
 `src/components/ui/`, `src/lib/`) lives on the
 [`pseudodemocracy-archive`](https://github.com/somunaexe/Bulfighter/tree/pseudodemocracy-archive)
 branch as a reference for the standalone Godot build. See that branch's own tree for its
@@ -224,7 +224,7 @@ Opening 3+ real browser tabs to test the game is slow and heavy. Instead, spin u
 
 ```bash
 # 1. Create a room yourself in a browser first, note the room code
-# 2. From the repo root, on the pseudodemocracy-archive branch:
+# 2. From the repository root, on the pseudodemocracy-archive branch:
 node pseudodemocracy/testing/run-bots.js <roomCode> <count>
 # 3. Click "Start game" once the bots have joined
 ```
