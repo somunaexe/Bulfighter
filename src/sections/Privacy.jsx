@@ -39,7 +39,6 @@ const Privacy = () => {
                         <p>If you apply to join a show via our &quot;Join Us&quot; form, we collect:</p>
                         <ul className="list-disc list-outside pl-5 space-y-1">
                             <li>Your full name, preferred/display name, age, email address, phone number, and social media handle</li>
-                            <li>Any allergies you tell us about, so we can cater food and drinks safely</li>
                             <li>Any screenshots or files you choose to upload for the topic you&apos;re applying for (e.g. a food order history or Spotify Wrapped)</li>
                         </ul>
                         <p>
@@ -49,9 +48,10 @@ const Privacy = () => {
                             order itself.
                         </p>
                         <p>
-                            If you&apos;re selected and complete the separate consent-to-shoot form, we collect the same
-                            details again to confirm them, plus - if you&apos;re under 18 - your parent or legal
-                            guardian&apos;s name, age, email, phone number, and allergies.
+                            We only ask about allergies once you&apos;re selected, on the separate consent-to-shoot
+                            form, so we can cater food and drinks safely - alongside confirming your other details
+                            again, plus, if you&apos;re under 18, your parent or legal guardian&apos;s name, age,
+                            email, phone number, and allergies.
                         </p>
                         <p>
                             If you actually appear on camera, we record your image, voice, and whatever you share or say

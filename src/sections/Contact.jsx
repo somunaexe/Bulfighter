@@ -28,7 +28,6 @@ const Contact = () => {
         email: '',
         phoneNumber: '',
         social: '',
-        allergies: '',
         takes: '',
     })
 
@@ -138,7 +137,6 @@ const Contact = () => {
             email: form.email.trim(),
             phoneNumber: form.phoneNumber.trim(),
             social: form.social.trim() || '',
-            allergies: form.allergies.trim() || '',
             takes: form.takes.trim() || '',
         }
         let payload = {}
@@ -175,7 +173,6 @@ const Contact = () => {
             email: "",
             phoneNumber: "",
             social: "",
-            allergies: "",
             takes: "",
         });
 
@@ -282,13 +279,6 @@ const Contact = () => {
                     </label>
 
                     <label className="space-y-3">
-                        <p className="field-label">Allergies</p>
-                        <input type="text" name="allergies" value={form.allergies} onChange={handleChange} rows={5} 
-                            className="field-input" placeholder="ex., nuts"
-                        />
-                    </label>
-
-                    <label className="space-y-3">
                         <p className="field-label"><b>Hot takes</b></p>
                         <textarea type="text" name="takes" value={form.takes} onChange={handleChange} rows={5} 
                             className="field-input" 
@@ -308,9 +298,11 @@ const Contact = () => {
 
                     {/* Separate from the onboarding-sheet checkbox below: that one is
                         about understanding the show, this one is the actual informed
-                        consent to process personal data (including allergies, which
-                        are health data) per the Privacy Policy - the two shouldn't be
-                        merged into one tickbox covering unrelated things. */}
+                        consent to process personal data per the Privacy Policy - the
+                        two shouldn't be merged into one tickbox covering unrelated
+                        things. Allergy info isn't collected on this form - we only ask
+                        for it, with its own explicit consent, once someone is selected
+                        and completes the consent-to-shoot form. */}
                     <label className="flex items-start gap-3">
                         <input
                             type="checkbox"
@@ -321,8 +313,7 @@ const Contact = () => {
                             className="mt-1 w-5 h-5 shrink-0 accent-[rgb(var(--theme-accent))]"
                         />
                         <span className="text-white-600">
-                            I consent to Bulfighter processing my personal data, including any allergy information I
-                            provide, as described in the{' '}
+                            I consent to Bulfighter processing my personal data, as described in the{' '}
                             <a href="/privacy" target="_blank" rel="noreferrer" className="link-accent">Privacy Policy</a>.
                             <span className='text-red-500'> *</span>
                         </span>
