@@ -11,10 +11,10 @@ const Section = ({ title, id, children }) => (
     </div>
 )
 
-// Mirrors exactly what OnboardingModal.jsx already tells applicants (same
-// promises, same caveats) and exactly what Contact.jsx/ConsentForm.jsx
-// actually collect - this page describes real data flows in the codebase,
-// not generic placeholder legal text.
+// Reviewed by an external data-protection expert (see the project's internal
+// edit notes) - this section structure and legal-basis language (contract /
+// legitimate interests for casting and filming, consent only for separate
+// optional uses like allergy data) reflects that review.
 const Privacy = () => {
     return (
         <main className="max-w-7xl mx-auto min-h-screen flex flex-col">
@@ -23,12 +23,14 @@ const Privacy = () => {
             <section className="c-space pt-24 pb-16 flex-1">
                 <div className="max-w-3xl mx-auto">
                     <h1 className="head-text text-3xl sm:text-4xl mb-2">Privacy Policy</h1>
-                    <p className="text-white-500 text-sm mb-8">Last updated 16 October 2026</p>
+                    <p className="text-white-500 text-sm mb-8">Last updated 21 October 2026</p>
 
                     <Section title="Who we are">
                         <p>
                             This policy covers Bulfighter (&quot;we&quot;, &quot;us&quot;), a social video series
-                            trading under the name Bulfighter. For any privacy question or request, contact us at{' '}
+                            trading under the name Bulfighter. We are the data controller responsible for how your
+                            personal information is collected and used. For any privacy question or request, contact
+                            us at{' '}
                             <a href={`mailto:${ONBOARDING_CONTACT_EMAIL}`} className="link-accent">{ONBOARDING_CONTACT_EMAIL}</a>.
                         </p>
                     </Section>
@@ -63,29 +65,68 @@ const Privacy = () => {
                         </p>
                     </Section>
 
-                    <Section title="How we use it">
-                        <ul className="list-disc list-outside pl-5 space-y-1">
-                            <li>To review applications and decide who to cast</li>
-                            <li>To contact you about your application or casting</li>
-                            <li>To accommodate allergies when food and drinks are served on the day</li>
-                            <li>To verify a parent/guardian&apos;s consent when a participant is under 18</li>
-                            <li>To record, edit, and publish the resulting video and clips</li>
-                        </ul>
+                    <Section title="How and why we use your information">
+                        <p>We use your information to organise, produce, and promote our videos.</p>
+                        <p>
+                            <strong>Applications and filming arrangements.</strong> We use your application
+                            information to select participants, contact you about casting decisions, and organise
+                            filming. We rely on our legitimate interests in managing applications and casting,
+                            provided these do not outweigh your rights.
+                        </p>
+                        <p>
+                            <strong>Participation and agreed use of footage.</strong> If you are selected, we use your
+                            information to carry out our participation agreement with you (your signed
+                            consent-to-shoot form). This includes recording, editing, and publishing your
+                            contribution to the agreed video.
+                        </p>
+                        <p>
+                            <strong>Optional uses.</strong> Where we ask for your consent to an additional, optional
+                            use of your information - such as using your allergy information to cater food and
+                            drinks safely - you can withdraw that consent at any time by contacting us.
+                        </p>
                     </Section>
 
-                    <Section title="Our legal basis for processing">
+                    <Section title="Recording and publishing videos">
                         <p>
-                            We process your application and casting details on the basis of your consent. Allergy
-                            information is health-related data, so we only collect and use it with your explicit
-                            consent, and solely to keep you safe around food on set - never for any other purpose.
+                            Before filming, we give selected participants a participation agreement
+                            (consent-to-shoot form) explaining what taking part involves and how their recordings
+                            will be used.
+                        </p>
+                        <p>
+                            We may record your image, voice, and contributions, and edit them into videos, highlights,
+                            and agreed promotional clips. These are typically published on YouTube and may also be
+                            published on our other social media platforms. Where recording, editing, and publication
+                            are necessary to carry out a valid participation agreement with you, we rely on that
+                            agreement as our legal basis.
+                        </p>
+                        <p>
+                            If you withdraw consent for a separate, optional use, we will stop that use. This does not
+                            automatically end uses that were clearly identified from the outset as necessary to carry
+                            out your participation agreement - your rights under data protection law still apply
+                            regardless.
+                        </p>
+                        <p>
+                            Once published, videos may be viewed, shared, or downloaded by others, including people
+                            outside the UK. We cannot guarantee the removal of copies independently shared or
+                            downloaded by other people.
                         </p>
                     </Section>
 
                     <Section title="If you're under 18">
                         <p>
-                            A parent or legal guardian must consent on your behalf and attend filming with you, bringing
-                            photo ID to confirm their identity. We only ever show a minor&apos;s first name or nickname
-                            on screen - never their full name, phone number, or other contact details.
+                            If you are under 18, your parent or legal guardian must give permission for you to take
+                            part, by signing a parental consent-to-shoot form. They must also attend filming with you
+                            and bring photo ID to confirm their identity.
+                        </p>
+                        <p>
+                            Before filming, we will explain to you and your parent or guardian what participation
+                            involves and how your footage will be used.
+                        </p>
+                        <p>
+                            We only ever show a minor&apos;s first name or nickname on screen - never their full name,
+                            phone number, or other contact details. We take additional care with children&apos;s
+                            personal information, considering their privacy and safety when recording, editing, and
+                            publishing videos.
                         </p>
                     </Section>
 
@@ -119,24 +160,50 @@ const Privacy = () => {
                         <p>
                             We keep application and consent details for as long as reasonably needed to run the casting
                             process, respond to you, and meet any legal obligations, then delete or anonymise them.
-                            Published video content isn&apos;t on an automatic deletion schedule - see &quot;Your
-                            rights&quot; below for what that means in practice.
+                            Published video content isn&apos;t on an automatic deletion schedule - see &quot;Requests
+                            about published videos&quot; below for what that means in practice.
                         </p>
                     </Section>
 
                     <Section title="Your rights">
                         <p>
-                            You can ask us to access, correct, delete, or restrict your personal data, object to how
-                            we&apos;re using it, or withdraw consent at any time, by emailing{' '}
-                            <a href={`mailto:${ONBOARDING_CONTACT_EMAIL}`} className="link-accent">{ONBOARDING_CONTACT_EMAIL}</a>.
-                            You can also complain to the UK Information Commissioner&apos;s Office (
-                            <a href="https://ico.org.uk" target="_blank" rel="noreferrer" className="link-accent">ico.org.uk</a>
-                            ).
+                            You have rights over your personal information under data protection law. Depending on
+                            the circumstances, you can ask us to:
+                        </p>
+                        <ul className="list-disc list-outside pl-5 space-y-1">
+                            <li>Give you access to your information.</li>
+                            <li>Correct inaccurate information.</li>
+                            <li>Delete information or restrict how we use it.</li>
+                            <li>Stop certain uses of your information.</li>
+                            <li>Provide certain information in a portable format.</li>
+                        </ul>
+                        <p>
+                            Where we rely on consent, you can withdraw it at any time. This does not affect anything
+                            we lawfully did before you withdrew it.
                         </p>
                         <p>
-                            One honest limit: once a video is edited and published, we may not be able to remove an
-                            entire segment or clip unless there&apos;s a legal, safety, or serious privacy concern -
-                            the same thing we tell every applicant before they&apos;re cast.
+                            If you have any concern about how we use your personal information, or if you wish to
+                            exercise your rights, please email{' '}
+                            <a href={`mailto:${ONBOARDING_CONTACT_EMAIL}`} className="link-accent">{ONBOARDING_CONTACT_EMAIL}</a>.
+                            You also have the right to complain to the UK Information Commissioner&apos;s Office at{' '}
+                            <a href="https://ico.org.uk" target="_blank" rel="noreferrer" className="link-accent">ico.org.uk</a>.
+                        </p>
+                    </Section>
+
+                    <Section title="Requests about published videos">
+                        <p>
+                            You can contact us to request that footage containing your personal information be
+                            removed or changed.
+                        </p>
+                        <p>
+                            We will consider your request under data protection law, taking account of your
+                            circumstances, the reason we use the footage, and any applicable exemptions. These rights
+                            are not absolute, so a request will not always result in removal.
+                        </p>
+                        <p>
+                            We may be unable to retrieve copies independently shared or downloaded by others. However,
+                            we will still consider your request and take any steps required by law for content under
+                            our control.
                         </p>
                     </Section>
 
