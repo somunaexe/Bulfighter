@@ -247,8 +247,10 @@ const ConsentForm = () => {
                     
                     {/* The actual informed consent - distinct from the submit button's
                         label, which alone isn't a clear enough record of what someone
-                        agreed to. Wording covers both being filmed/published (Terms)
-                        and personal-data processing (Privacy Policy), and is phrased
+                        agreed to. Wording covers being filmed, edited and published
+                        (including promotional use, per the expert review), allergy
+                        info being used only to cater safely, and personal-data
+                        processing generally (Terms & Privacy Policy) - and is phrased
                         for the guardian specifically when they're the one consenting
                         on a minor's behalf. */}
                     <label className="flex items-start gap-3">
@@ -262,18 +264,21 @@ const ConsentForm = () => {
                         <span className="text-white-600">
                             {Number(form.age) < 18 ? (
                                 <>
-                                    As the participant&apos;s parent/legal guardian, I consent to their being filmed and
-                                    to Bulfighter publishing the resulting footage, and to Bulfighter processing our
-                                    personal data (including any allergy information), as described in the{' '}
+                                    As the participant&apos;s parent/legal guardian, I consent to their being filmed,
+                                    and to Bulfighter editing and publishing the resulting footage, including for
+                                    promotional activities on our social media. I also consent to Bulfighter
+                                    processing our personal data, including using any allergy information we provide
+                                    solely to cater food and drinks safely on the day, as described in the{' '}
                                     <a href="/terms" target="_blank" rel="noreferrer" className="link-accent">Terms &amp; Conditions</a>
                                     {' '}and{' '}
                                     <a href="/privacy" target="_blank" rel="noreferrer" className="link-accent">Privacy Policy</a>.
                                 </>
                             ) : (
                                 <>
-                                    I consent to being filmed and to Bulfighter publishing the resulting footage, and to
-                                    Bulfighter processing my personal data (including any allergy information), as
-                                    described in the{' '}
+                                    I consent to being filmed, and to Bulfighter editing and publishing the resulting
+                                    footage, including for promotional activities on our social media. I also consent
+                                    to Bulfighter processing my personal data, including using any allergy information
+                                    I provide solely to cater food and drinks safely on the day, as described in the{' '}
                                     <a href="/terms" target="_blank" rel="noreferrer" className="link-accent">Terms &amp; Conditions</a>
                                     {' '}and{' '}
                                     <a href="/privacy" target="_blank" rel="noreferrer" className="link-accent">Privacy Policy</a>.
