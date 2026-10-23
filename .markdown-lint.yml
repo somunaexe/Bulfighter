@@ -1,0 +1,14 @@
+# markdownlint config for super-linter. ".markdown-lint.yml" (hyphenated) is
+# super-linter's own default MARKDOWN_CONFIG_FILE name, found at the repository
+# root via LINTER_RULES_PATH (see .github/workflows/super-linter.yml) - a plain
+# ".markdownlint.yml" is the community-standard name but isn't what super-linter
+# looks for by default.
+#
+# MD013 (line-length) is impractical for README.md: its prose lines carry long
+# inline links and run well past any reasonable fixed width. Every other
+# default rule stays on.
+MD013: false
+# The Tech Stack section uses bold text ("**Frontend**", "**Backend / Infra**",
+# etc.) as sub-groupings under one H2, not as real headings - that's a
+# deliberate, common README convention, not a heading that got mis-typed.
+MD036: false

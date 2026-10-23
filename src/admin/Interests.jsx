@@ -1,176 +1,235 @@
-import {useState, useEffect} from "react";
-import { format } from "date-fns"
-import ConfirmModal from "../components/ConfirmModal";
-import { getInterests } from "../api/interests.js"
-import { sendConsentInvite } from "../api/consentInvite.js"
+import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
+import ConfirmModal from '../components/ConfirmModal';
+import { getInterests } from '../api/interests.js';
+import { sendConsentInvite } from '../api/consentInvite.js';
 
 const Interests = () => {
-    const [interests, setInterests] = useState([]);
-    const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [topicId, setTopicId] = useState("")
-    const [role, setRole] = useState("judges")
-    const [currentInterestId, setCurrentInterestId] = useState("")
-    const [email, setEmail] = useState('')
-    const [consentMessage, setConsentMessage] = useState('')
-    const [consentError, setConsentError] = useState('')
-    const [sending, setSending] = useState(false)
+  const [interests, setInterests] = useState([]);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [topicId, setTopicId] = useState('');
+  const [role, setRole] = useState('judges');
+  const [currentInterestId, setCurrentInterestId] = useState('');
+  const [email, setEmail] = useState('');
+  const [consentMessage, setConsentMessage] = useState('');
+  const [consentError, setConsentError] = useState('');
+  const [sending, setSending] = useState(false);
+  const requestConsent = async (e) => {
+    e.preventDefault();
+    if (sending) return;
+    setSending(true);
+    setConsentMessage('');
+    setConsentError('');
+    const currentTime = new Date().toISOString();
+
+    try {
+      const data = await sendConsentInvite({
+        interestId: currentInterestId,
+        email: email,
+        topicId: topicId.trim(),
+        role: role,
+        currentTime: currentTime,
+      });
+      setConsentMessage(data.message || 'Consent form sent');
+      setTopicId('');
+      setRole('judges');
+    } catch (err) {
+      console.error('Error:', err);
+      setConsentError(
+        'Something went wrong sending the consent form. Please try again.',
+      );
+    } finally {
+      setSending(false);
+    }
+  };
+
+  useEffect(() => {
     const loadInterests = async () => {
-        const interests = await getInterests()
-        const sortedInterests = interests.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp))
-        console.log(sortedInterests)
-        setInterests(sortedInterests);
-        // setLoaded(false)
-    }
+      const interests = await getInterests();
+      const sortedInterests = interests.sort(
+        (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+      );
+      console.log(sortedInterests);
+      setInterests(sortedInterests);
+      // setLoaded(false)
+    };
+    loadInterests();
+  }, []);
 
-    const requestConsent = async(e) => {
-        e.preventDefault()
-        if (sending) return
-        setSending(true)
-        setConsentMessage('')
-        setConsentError('')
-        const currentTime = new Date().toISOString()
+  return (
+    <div className="surface-card mb-20">
+      <section className="c-space py-10">
+        <h3 className="head-text text-center">Interests</h3>
+        <br />
 
-        try {
-            const data = await sendConsentInvite({interestId: currentInterestId, email: email, topicId: topicId.trim(), role: role, currentTime: currentTime})
-            setConsentMessage(data.message || "Consent form sent")
-            setTopicId('')
-            setRole('judges')
-        } catch (err) {
-            console.error("Error:", err)
-            setConsentError("Something went wrong sending the consent form. Please try again.")
-        } finally {
-            setSending(false)
-        }
-    }
+        <ConfirmModal isOpen={modalIsOpen}>
+          <button
+            type="button"
+            className="bg-red-500 font-medium text-white h-8 w-8 rounded-full flex items-center justify-center"
+            onClick={() => {
+              setModalIsOpen(false);
+              setCurrentInterestId('');
+              setTopicId('');
+              setRole('judges');
+              setEmail('');
+              setConsentMessage('');
+              setConsentError('');
+            }}
+          >
+            x
+          </button>
+          <form className="mt-12 flex flex-col space-y-7 z-10 relative">
+            {consentMessage && (
+              <p className="text-green-500">{consentMessage}</p>
+            )}
+            {consentError && <p className="text-red-500">{consentError}</p>}
+            <p className="text-white">
+              Are you sure you want to send the consent form?
+            </p>
 
-    useEffect(() =>{
-        loadInterests();
-    },[])
+            <label className="space-y-3">
+              <p className="field-label">
+                Topic ID <span className="text-red-500">*</span>
+              </p>
+              <input
+                type="text"
+                name="id"
+                value={topicId}
+                onChange={(e) => setTopicId(e.target.value)}
+                required
+                className="field-input"
+                placeholder="ex., 5 (see the Topics tab for the number)"
+              />
+            </label>
 
-    return (
-        <div className="surface-card mb-20">
-            <section className="c-space py-10">
-                <h3 className="head-text text-center">Interests</h3>
-                <br/>
+            <label className="space-y-3">
+              <p className="field-label">
+                Role <span className="text-red-500">* </span>
+              </p>
+              <select
+                name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+                className="field-input"
+              >
+                <option value="judges">Judge</option>
+                <option value="contestants">Contestant</option>
+                <option value="castMembers">Cast Member</option>
+                <option value="crew">Crew</option>
+              </select>
+            </label>
 
-                <ConfirmModal isOpen={modalIsOpen}>
-                    <button type="button" className="bg-red-500 font-medium text-white h-8 w-8 rounded-full flex items-center justify-center"
-                        onClick={() => {
-                            setModalIsOpen(false)
-                            setCurrentInterestId('')
-                            setTopicId('')
-                            setRole('judges')
-                            setEmail('')
-                            setConsentMessage('')
-                            setConsentError('')
-                        }}
-                    >
-                        x
-                    </button>
-                    <form className="mt-12 flex flex-col space-y-7 z-10 relative">
-                        {consentMessage && <p className="text-green-500">{consentMessage}</p>}
-                        {consentError && <p className="text-red-500">{consentError}</p>}
-                        <p className="text-white">Are you sure you want to send the consent form?</p>
+            <button
+              type="submit"
+              className="btn"
+              onClick={requestConsent}
+              disabled={sending}
+            >
+              {sending ? 'Sending...' : 'Yes'}
+            </button>
+          </form>
+        </ConfirmModal>
 
-                        <label className="space-y-3">
-                            <p className="field-label">Topic ID <span className='text-red-500'>*</span></p>
-                            <input type="text" name="id" value={topicId} onChange={(e) => setTopicId(e.target.value)} required
-                                className="field-input" placeholder="ex., 5 (see the Topics tab for the number)"/>
-                        </label>
-
-                        <label className="space-y-3">
-                            <p className="field-label">Role <span className='text-red-500'>* </span></p>
-                            <select
-                                name="role" value={role} onChange={(e) => setRole(e.target.value)} required
-                                className="field-input"
+        {interests.length > 0 && (
+          <div className="overflow-x-auto rounded-lg border border-black-500">
+            <table className="table-auto border-collapse w-full">
+              <thead>
+                <tr>
+                  <th className="table-head-cell">S/N</th>
+                  <th className="table-head-cell">Full Name</th>
+                  <th className="table-head-cell">Time Applied</th>
+                  <th className="table-head-cell">Age</th>
+                  <th className="table-head-cell">Email</th>
+                  <th className="table-head-cell">Phone Number</th>
+                  <th className="table-head-cell">Social(s)</th>
+                  <th className="table-head-cell">Allergies</th>
+                  <th className="table-head-cell">Send Consent form?</th>
+                </tr>
+              </thead>
+              <tbody>
+                {interests.map((interest, index) => {
+                  const {
+                    interestId,
+                    timestamp,
+                    fullName,
+                    age,
+                    email,
+                    phoneNumber,
+                    social,
+                    allergies,
+                  } = interest;
+                  return (
+                    <tr key={interestId || index}>
+                      <td className="table-cell">{index + 1}</td>
+                      <td className="table-cell">{fullName}</td>
+                      <td className="table-cell">
+                        {format(
+                          new Date(timestamp),
+                          'eeee, MMM d, yyyy, HH:mm:ss',
+                        )}
+                      </td>
+                      <td className="table-cell">{age}</td>
+                      <td className="table-cell">
+                        <a className="table-link" href={`mailto:${email}`}>
+                          {email}
+                        </a>
+                      </td>
+                      <td className="table-cell">{phoneNumber}</td>
+                      <td className="table-cell">
+                        {social ? (
+                          <a
+                            href={social}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="table-link"
+                          >
+                            Social media profile
+                          </a>
+                        ) : (
+                          ''
+                        )}
+                      </td>
+                      <td className="table-cell">{allergies}</td>
+                      <td className="table-cell">
+                        <div className="flex justify-center">
+                          <button
+                            type="button"
+                            aria-label="Send consent form"
+                            title="Send consent form"
+                            className="w-9 h-9 rounded-full bg-black-500 hover:bg-[rgb(var(--theme-accent))] flex items-center justify-center transition-colors"
+                            onClick={() => {
+                              setCurrentInterestId(interestId);
+                              setModalIsOpen(true);
+                              setEmail(email);
+                            }}
+                          >
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="w-4 h-4 fill-none stroke-white stroke-2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
                             >
-                                <option value="judges">Judge</option>
-                                <option value="contestants">Contestant</option>
-                                <option value="castMembers">Cast Member</option>
-                                <option value="crew">Crew</option>
-                            </select>
-                        </label>
-
-                        <button type="submit" className="btn" onClick={requestConsent} disabled={sending}>
-                            {sending ? 'Sending...' : 'Yes'}
-                        </button>
-                    </form>
-                </ConfirmModal>
-
-                {interests.length > 0 && (
-                    <div className="overflow-x-auto rounded-lg border border-black-500">
-                            <table className="table-auto border-collapse w-full">
-                                <thead>
-                                    <tr>
-                                        <th className="table-head-cell">S/N</th>
-                                        <th className="table-head-cell">Full Name</th>
-                                        <th className="table-head-cell">Time Applied</th>
-                                        <th className="table-head-cell">Age</th>
-                                        <th className="table-head-cell">Email</th>
-                                        <th className="table-head-cell">Phone Number</th>
-                                        <th className="table-head-cell">Social(s)</th>
-                                        <th className="table-head-cell">Allergies</th>
-                                        <th className="table-head-cell">Send Consent form?</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {interests.map((interest, index) => {
-                                    const { interestId, timestamp, fullName, age, email, phoneNumber, social, allergies} = interest;
-                                    return (
-                                        <tr key={interestId || index}>
-                                            <td className="table-cell">{index+1}</td>
-                                            <td className="table-cell">{fullName}</td>
-                                            <td className="table-cell">
-                                                {format(new Date(timestamp), "eeee, MMM d, yyyy, HH:mm:ss")}
-                                            </td>
-                                            <td className="table-cell">{age}</td>
-                                            <td className="table-cell">
-                                                <a className="table-link" href={`mailto:${email}`}>
-                                                    {email}
-                                                </a>
-                                            </td>
-                                            <td className="table-cell">{phoneNumber}</td>
-                                            <td className="table-cell">
-                                                {social ?
-                                                    <a href={social} target="_blank" rel="noreferrer" className="table-link">link</a>
-                                                :
-                                                    ''
-                                                }
-                                            </td>
-                                            <td className="table-cell">{allergies}</td>
-                                            <td className="table-cell">
-                                                <div className="flex justify-center">
-                                                    <button
-                                                        aria-label="Send consent form"
-                                                        title="Send consent form"
-                                                        className="w-9 h-9 rounded-full bg-black-500 hover:bg-[rgb(var(--theme-accent))] flex items-center justify-center transition-colors"
-                                                        onClick={() => {
-                                                            setCurrentInterestId(interestId)
-                                                            setModalIsOpen(true)
-                                                            setEmail(email)
-                                                        }}
-                                                    >
-                                                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-white stroke-2" strokeLinecap="round" strokeLinejoin="round">
-                                                            <line x1="22" y1="2" x2="11" y2="13" />
-                                                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                                </tbody>
-                            </table>
+                              <title>Send</title>
+                              <line x1="22" y1="2" x2="11" y2="13" />
+                              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                            </svg>
+                          </button>
                         </div>
-                    )
-                }
-                {interests.length < 1 && (
-                    <p className="text-white-600 text-3xl">Loading...</p>
-                )}
-            </section>
-        </div>
-    )
-}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {interests.length < 1 && (
+          <p className="text-white-600 text-3xl">Loading...</p>
+        )}
+      </section>
+    </div>
+  );
+};
 
 export default Interests;
